@@ -85,25 +85,21 @@ func (u *userService) GetUserInfor(ctx context.Context, userID string) (*UserInf
 		return nil, fmt.Errorf("invalid response format: missing 'data' field")
 	}
 
-	avatars := []Avatar{}
-	if rawAvatars, exists := innerData["avatars"].([]interface{}); exists {
-		for _, v := range rawAvatars {
-			if avatarMap, ok := v.(map[string]interface{}); ok {
-				avatars = append(avatars, Avatar{
-					ImageID:  uint64(castToInt64(avatarMap["image_id"])),
-					ImageKey: fmt.Sprintf("%v", avatarMap["image_key"]),
-					ImageUrl: fmt.Sprintf("%v", avatarMap["image_url"]),
-					Index:    int(castToInt64(avatarMap["index"])),
-					IsMain:   castToBool(avatarMap["is_main"]),
-				})
-			}
+	var avatar Avatar
+	if rawAvatar, exists := innerData["avatar"].(map[string]interface{}); exists {
+		avatar = Avatar{
+			ImageID:  uint64(castToInt64(rawAvatar["image_id"])),
+			ImageKey: fmt.Sprintf("%v", rawAvatar["image_key"]),
+			ImageUrl: fmt.Sprintf("%v", rawAvatar["image_url"]),
+			Index:    int(castToInt64(rawAvatar["index"])),
+			IsMain:   castToBool(rawAvatar["is_main"]),
 		}
 	}
 
 	return &UserInfor{
 		UserID:   fmt.Sprintf("%v", innerData["id"]),
 		UserName: fmt.Sprintf("%v", innerData["name"]),
-		Avartars: avatars,
+		Avartar: avatar,
 	}, nil
 }
 
@@ -129,25 +125,21 @@ func (u *userService) GetStudentInfor(ctx context.Context, studentID string) (*U
 		return nil, fmt.Errorf("invalid response format: missing 'data' field")
 	}
 
-	avatars := []Avatar{}
-	if rawAvatars, exists := innerData["avatars"].([]interface{}); exists {
-		for _, v := range rawAvatars {
-			if avatarMap, ok := v.(map[string]interface{}); ok {
-				avatars = append(avatars, Avatar{
-					ImageID:  uint64(castToInt64(avatarMap["image_id"])),
-					ImageKey: fmt.Sprintf("%v", avatarMap["image_key"]),
-					ImageUrl: fmt.Sprintf("%v", avatarMap["image_url"]),
-					Index:    int(castToInt64(avatarMap["index"])),
-					IsMain:   castToBool(avatarMap["is_main"]),
-				})
-			}
+	var avatar Avatar
+	if rawAvatar, exists := innerData["avatar"].(map[string]interface{}); exists {
+		avatar = Avatar{
+			ImageID:  uint64(castToInt64(rawAvatar["image_id"])),
+			ImageKey: fmt.Sprintf("%v", rawAvatar["image_key"]),
+			ImageUrl: fmt.Sprintf("%v", rawAvatar["image_url"]),
+			Index:    int(castToInt64(rawAvatar["index"])),
+			IsMain:   castToBool(rawAvatar["is_main"]),
 		}
 	}
 
 	return &UserInfor{
 		UserID:   fmt.Sprintf("%v", innerData["id"]),
 		UserName: fmt.Sprintf("%v", innerData["name"]),
-		Avartars: avatars,
+		Avartar: avatar,
 	}, nil
 
 }
@@ -173,25 +165,21 @@ func (u *userService) GetTeacherInfor(ctx context.Context, studentID string) (*U
 		return nil, fmt.Errorf("invalid response format: missing 'data' field")
 	}
 
-	avatars := []Avatar{}
-	if rawAvatars, exists := innerData["avatars"].([]interface{}); exists {
-		for _, v := range rawAvatars {
-			if avatarMap, ok := v.(map[string]interface{}); ok {
-				avatars = append(avatars, Avatar{
-					ImageID:  uint64(castToInt64(avatarMap["image_id"])),
-					ImageKey: fmt.Sprintf("%v", avatarMap["image_key"]),
-					ImageUrl: fmt.Sprintf("%v", avatarMap["image_url"]),
-					Index:    int(castToInt64(avatarMap["index"])),
-					IsMain:   castToBool(avatarMap["is_main"]),
-				})
-			}
+	var avatar Avatar
+	if rawAvatar, exists := innerData["avatar"].(map[string]interface{}); exists {
+		avatar = Avatar{
+			ImageID:  uint64(castToInt64(rawAvatar["image_id"])),
+			ImageKey: fmt.Sprintf("%v", rawAvatar["image_key"]),
+			ImageUrl: fmt.Sprintf("%v", rawAvatar["image_url"]),
+			Index:    int(castToInt64(rawAvatar["index"])),
+			IsMain:   castToBool(rawAvatar["is_main"]),
 		}
 	}
 
 	return &UserInfor{
 		UserID:   fmt.Sprintf("%v", innerData["id"]),
 		UserName: fmt.Sprintf("%v", innerData["name"]),
-		Avartars: avatars,
+		Avartar: avatar,
 	}, nil
 
 }
@@ -217,25 +205,21 @@ func (u *userService) GetStaffInfor(ctx context.Context, studentID string) (*Use
 		return nil, fmt.Errorf("invalid response format: missing 'data' field")
 	}
 
-	avatars := []Avatar{}
-	if rawAvatars, exists := innerData["avatars"].([]interface{}); exists {
-		for _, v := range rawAvatars {
-			if avatarMap, ok := v.(map[string]interface{}); ok {
-				avatars = append(avatars, Avatar{
-					ImageID:  uint64(castToInt64(avatarMap["image_id"])),
-					ImageKey: fmt.Sprintf("%v", avatarMap["image_key"]),
-					ImageUrl: fmt.Sprintf("%v", avatarMap["image_url"]),
-					Index:    int(castToInt64(avatarMap["index"])),
-					IsMain:   castToBool(avatarMap["is_main"]),
-				})
-			}
+	var avatar Avatar
+	if rawAvatar, exists := innerData["avatar"].(map[string]interface{}); exists {
+		avatar = Avatar{
+			ImageID:  uint64(castToInt64(rawAvatar["image_id"])),
+			ImageKey: fmt.Sprintf("%v", rawAvatar["image_key"]),
+			ImageUrl: fmt.Sprintf("%v", rawAvatar["image_url"]),
+			Index:    int(castToInt64(rawAvatar["index"])),
+			IsMain:   castToBool(rawAvatar["is_main"]),
 		}
 	}
 
 	return &UserInfor{
 		UserID:   fmt.Sprintf("%v", innerData["id"]),
 		UserName: fmt.Sprintf("%v", innerData["name"]),
-		Avartars: avatars,
+		Avartar: avatar,
 	}, nil
 
 }

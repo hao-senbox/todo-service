@@ -1,9 +1,9 @@
 package user
 
 type UserInfor struct {
-	UserID         string   `json:"user_id"`
-	UserName       string   `json:"user_name"`
-	Avartars       []Avatar `json:"avatars"`
+	UserID   string `json:"user_id"`
+	UserName string `json:"user_name"`
+	Avartar  Avatar `json:"avatar"`
 }
 
 type Avatar struct {

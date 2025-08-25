@@ -37,5 +37,5 @@ type TaskUsersResponse struct {
 type TaskUser struct {
 	UserID         string   `json:"user_id"`
 	UserName       string   `json:"user_name"`
-	Avartars       []user.Avatar `json:"avatars"`
+	Avartar       user.Avatar `json:"avatar"`
 }
