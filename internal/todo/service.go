@@ -3,6 +3,7 @@ package todo
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 	"todo-service/internal/user"
 
@@ -10,15 +11,15 @@ import (
 )
 
 type TodoService interface {
-	GetAllTodo(ctx context.Context, status, name, teacher, student, staff string) ([]*Todo, error)
-	GetTodoByID(ctx context.Context, todoID string) (*Todo, error)
+	GetAllTodo(ctx context.Context, status, name, teacher, student, staff string) ([]*TodoResponse, error)
+	GetTodoByID(ctx context.Context, todoID string) (*TodoResponse, error)
 	CreateTodo(ctx context.Context, req CreateTodoRequest, userID string) (*string, error)
 	UpdateTodo(ctx context.Context, req UpdateTaskProgressRequest, id string) error
 	DeleteTodo(ctx context.Context, id string) error
 	// Join Todo
 	JoinTodo(ctx context.Context, req JoinTodoRequest, userID string) error
 	AddUser(ctx context.Context, req AddUserRequest) error
-	GetMyTodo(ctx context.Context, userID string) ([]*Todo, error)
+	GetMyTodo(ctx context.Context, userID string) ([]*TodoResponse, error)
 }
 
 type todoService struct {
@@ -33,20 +34,37 @@ func NewTodoService(TodoRepo TodoRepository, UserService user.UserService) TodoS
 	}
 }
 
-func (s *todoService) GetAllTodo(ctx context.Context, status, name, teacher, student, staff string) ([]*Todo, error) {
-	return s.TodoRepo.GetAllTodo(ctx, status, name, teacher, student, staff)
+func (s *todoService) GetAllTodo(ctx context.Context, status, name, teacher, student, staff string) ([]*TodoResponse, error) {
+	todos, err := s.TodoRepo.GetAllTodo(ctx, status, name, teacher, student, staff)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*TodoResponse
+	for _, todo := range todos {
+		results = append(results, s.buildTodoResponse(ctx, todo))
+	}
+	return results, nil
 }
 
-func (s *todoService) GetTodoByID(ctx context.Context, todoID string) (*Todo, error) {
 
+func (s *todoService) GetTodoByID(ctx context.Context, todoID string) (*TodoResponse, error) {
 	objectID, err := primitive.ObjectIDFromHex(todoID)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.TodoRepo.GetTodoByID(ctx, objectID)
+	todo, err := s.TodoRepo.GetTodoByID(ctx, objectID)
+	if err != nil {
+		return nil, err
+	}
+	if todo == nil {
+		return nil, fmt.Errorf("todo not found")
+	}
 
+	return s.buildTodoResponse(ctx, todo), nil
 }
+
 
 func (s *todoService) CreateTodo(ctx context.Context, req CreateTodoRequest, userID string) (*string, error) {
 
@@ -283,7 +301,7 @@ func (s *todoService) JoinTodo(ctx context.Context, req JoinTodoRequest, userID 
 }
 
 func (s *todoService) AddUser(ctx context.Context, req AddUserRequest) error {
-	
+
 	if req.TodoID == "" {
 		return fmt.Errorf("todo id is required")
 	}
@@ -302,10 +320,11 @@ func (s *todoService) AddUser(ctx context.Context, req AddUserRequest) error {
 	}
 
 	return s.TodoRepo.AddUser(ctx, objectID, req.UserID, req.Type)
-	
+
 }
 
-func (s *todoService) GetMyTodo(ctx context.Context, userID string) ([]*Todo, error) {
+func (s *todoService) GetMyTodo(ctx context.Context, userID string) ([]*TodoResponse, error) {
+
 	if userID == "" {
 		return nil, fmt.Errorf("user id is required")
 	}
@@ -319,116 +338,185 @@ func (s *todoService) GetMyTodo(ctx context.Context, userID string) ([]*Todo, er
 		return nil, fmt.Errorf("todo not found")
 	}
 
-	// var results []*TodoResponse
+	var results []*TodoResponse
 
-	// for _, todo := range myTodo {
-	// 	var createdBy TaskUser
-	// 	if todo.CreatedBy != "" {
-	// 		createdByInfor, err := s.UserService.GetUserInfor(ctx, todo.CreatedBy)
-	// 		if err != nil {
-	// 			log.Printf("[WARN] failed to get createdBy user info for %s: %v", todo.CreatedBy, err)
-	// 		} else {
-	// 			createdBy = TaskUser{
-	// 				UserID:   createdByInfor.UserID,
-	// 				UserName: createdByInfor.UserName,
-	// 				FullName: createdByInfor.FullName,
-	// 				Roles:    convertRoles(createdByInfor.Roles),
-	// 				Avartar:  &createdByInfor.Avartar,
-	// 			}
-	// 		}
-	// 	}
+	for _, todo := range myTodo {
+		var createdBy TaskUser
+		if todo.CreatedBy != "" {
+			createdByInfor, err := s.UserService.GetUserInfor(ctx, todo.CreatedBy)
+			if err != nil {
+				log.Printf("[WARN] failed to get createdBy user info for %s: %v", todo.CreatedBy, err)
+			} else {
+				createdBy = TaskUser{
+					UserID:         createdByInfor.UserID,
+					UserName:       createdByInfor.UserName,
+					Avartars:       createdByInfor.Avartars,
+				}
+			}
+		}
 
-	// 	var taskUsersResp TaskUsersResponse
+		var taskUsersResp TaskUsersResponse
 
-	// 	for _, teacherID := range todo.TaskUsers.Teachers {
-	// 		if teacherID == "" {
-	// 			continue
-	// 		}
-	// 		info, err := s.UserService.GetUserInfor(ctx, teacherID)
-	// 		if err != nil {
-	// 			log.Printf("[WARN] failed to get teacher info for %s: %v", teacherID, err)
-	// 			continue
-	// 		}
-	// 		taskUsersResp.Teachers = append(taskUsersResp.Teachers, TaskUser{
-	// 			UserID:   info.UserID,
-	// 			UserName: info.UserName,
-	// 			FullName: info.FullName,
-	// 			Roles:    convertRoles(info.Roles),
-	// 			Avartar:  &info.Avartar,
-	// 		})
-	// 	}
+		for _, teacherID := range todo.TaskUsers.Teachers {
+			if teacherID == "" {
+				continue
+			}
+			info, err := s.UserService.GetTeacherInfor(ctx, teacherID)
+			if err != nil {
+				log.Printf("[WARN] failed to get teacher info for %s: %v", teacherID, err)
+				continue
+			}
+			taskUsersResp.Teachers = append(taskUsersResp.Teachers, TaskUser{
+				UserID:         info.UserID,
+				UserName:       info.UserName,
+				Avartars:       info.Avartars,
+			})
+		}
 
-	// 	for _, studentID := range todo.TaskUsers.Students {
-	// 		if studentID == "" {
-	// 			continue
-	// 		}
-	// 		info, err := s.UserService.GetUserInfor(ctx, studentID)
-	// 		if err != nil {
-	// 			log.Printf("[WARN] failed to get student info for %s: %v", studentID, err)
-	// 			continue
-	// 		}
-	// 		taskUsersResp.Students = append(taskUsersResp.Students, TaskUser{
-	// 			UserID:   info.UserID,
-	// 			UserName: info.UserName,
-	// 			FullName: info.FullName,
-	// 			Roles:    convertRoles(info.Roles),
-	// 			Avartar:  &info.Avartar,
-	// 		})
-	// 	}
+		for _, studentID := range todo.TaskUsers.Students {
+			if studentID == "" {
+				continue
+			}
+			info, err := s.UserService.GetStudentInfor(ctx, studentID)
+			if err != nil {
+				log.Printf("[WARN] failed to get student info for %s: %v", studentID, err)
+				continue
+			}
+			taskUsersResp.Students = append(taskUsersResp.Students, TaskUser{
+				UserID:         info.UserID,
+				UserName:       info.UserName,
+				Avartars:       info.Avartars,
+			})
+		}
 
-	// 	for _, staffID := range todo.TaskUsers.Staff {
-	// 		if staffID == "" {
-	// 			continue
-	// 		}
-	// 		info, err := s.UserService.GetUserInfor(ctx, staffID)
-	// 		if err != nil {
-	// 			log.Printf("[WARN] failed to get staff info for %s: %v", staffID, err)
-	// 			continue
-	// 		}
-	// 		taskUsersResp.Staff = append(taskUsersResp.Staff, TaskUser{
-	// 			UserID:   info.UserID,
-	// 			UserName: info.UserName,
-	// 			FullName: info.FullName,
-	// 			Roles:    convertRoles(info.Roles),
-	// 			Avartar:  &info.Avartar,
-	// 		})
-	// 	}
+		for _, staffID := range todo.TaskUsers.Staff {
+			if staffID == "" {
+				continue
+			}
+			info, err := s.UserService.GetStaffInfor(ctx, staffID)
+			if err != nil {
+				log.Printf("[WARN] failed to get staff info for %s: %v", staffID, err)
+				continue
+			}
+			taskUsersResp.Staff = append(taskUsersResp.Staff, TaskUser{
+				UserID:         info.UserID,
+				UserName:       info.UserName,
+				Avartars:       info.Avartars,
+			})
+		}
 
-	// 	todoResp := &TodoResponse{
-	// 		ID:          todo.ID,
-	// 		Name:        todo.Name,
-	// 		Description: todo.Description,
-	// 		DueDate:     todo.DueDate,
-	// 		Urgent:      todo.Urgent,
-	// 		Link:        todo.Link,
-	// 		Progress:    todo.Progress,
-	// 		Stage:       todo.Stage,
-	// 		QRCode:      todo.QRCode,
-	// 		Options:     todo.Options,
-	// 		CreatedBy:   createdBy,
-	// 		Pictures:    todo.Pictures,
-	// 		ImageTask:   todo.ImageTask,
-	// 		TaskUsers:   taskUsersResp,
-	// 		CreatedAt:   todo.CreatedAt,
-	// 		UpdatedAt:   todo.UpdatedAt,
-	// 		DeletedAt:   todo.DeletedAt,
-	// 		DeletedBy:   todo.DeletedBy,
-	// 	}
+		todoResp := &TodoResponse{
+			ID:          todo.ID,
+			Name:        todo.Name,
+			Description: todo.Description,
+			DueDate:     todo.DueDate,
+			Urgent:      todo.Urgent,
+			Link:        todo.Link,
+			Progress:    todo.Progress,
+			Stage:       todo.Stage,
+			QRCode:      todo.QRCode,
+			Options:     todo.Options,
+			CreatedBy:   createdBy,
+			Pictures:    todo.Pictures,
+			ImageTask:   todo.ImageTask,
+			TaskUsers:   taskUsersResp,
+			CreatedAt:   todo.CreatedAt,
+			UpdatedAt:   todo.UpdatedAt,
+			DeletedAt:   todo.DeletedAt,
+			DeletedBy:   todo.DeletedBy,
+		}
 
-	// 	results = append(results, todoResp)
-	// }
+		results = append(results, todoResp)
+	}
 
-	return myTodo, nil
+	return results, nil
 }
 
-func convertRoles(src []user.Role) []*Role {
-	var roles []*Role
-	for _, r := range src {
-		role := Role{
-			RoleID:   r.RoleID,
-			RoleName: r.RoleName,
+func (s *todoService) buildTodoResponse(ctx context.Context, todo *Todo) *TodoResponse {
+
+	var createdBy TaskUser
+	if todo.CreatedBy != "" {
+		createdByInfor, err := s.UserService.GetUserInfor(ctx, todo.CreatedBy)
+		if err != nil {
+			log.Printf("[WARN] failed to get createdBy user info for %s: %v", todo.CreatedBy, err)
+		} else {
+			createdBy = TaskUser{
+				UserID:   createdByInfor.UserID,
+				UserName: createdByInfor.UserName,
+				Avartars: createdByInfor.Avartars,
+			}
 		}
-		roles = append(roles, &role)
 	}
-	return roles
+
+	var taskUsersResp TaskUsersResponse
+
+	for _, teacherID := range todo.TaskUsers.Teachers {
+		if teacherID == "" {
+			continue
+		}
+		info, err := s.UserService.GetTeacherInfor(ctx, teacherID)
+		if err != nil {
+			log.Printf("[WARN] failed to get teacher info for %s: %v", teacherID, err)
+			continue
+		}
+		taskUsersResp.Teachers = append(taskUsersResp.Teachers, TaskUser{
+			UserID:   info.UserID,
+			UserName: info.UserName,
+			Avartars: info.Avartars,
+		})
+	}
+
+	for _, studentID := range todo.TaskUsers.Students {
+		if studentID == "" {
+			continue
+		}
+		info, err := s.UserService.GetStudentInfor(ctx, studentID)
+		if err != nil {
+			log.Printf("[WARN] failed to get student info for %s: %v", studentID, err)
+			continue
+		}
+		taskUsersResp.Students = append(taskUsersResp.Students, TaskUser{
+			UserID:   info.UserID,
+			UserName: info.UserName,
+			Avartars: info.Avartars,
+		})
+	}
+
+	for _, staffID := range todo.TaskUsers.Staff {
+		if staffID == "" {
+			continue
+		}
+		info, err := s.UserService.GetStaffInfor(ctx, staffID)
+		if err != nil {
+			log.Printf("[WARN] failed to get staff info for %s: %v", staffID, err)
+			continue
+		}
+		taskUsersResp.Staff = append(taskUsersResp.Staff, TaskUser{
+			UserID:   info.UserID,
+			UserName: info.UserName,
+			Avartars: info.Avartars,
+		})
+	}
+
+	return &TodoResponse{
+		ID:          todo.ID,
+		Name:        todo.Name,
+		Description: todo.Description,
+		DueDate:     todo.DueDate,
+		Urgent:      todo.Urgent,
+		Link:        todo.Link,
+		Progress:    todo.Progress,
+		Stage:       todo.Stage,
+		QRCode:      todo.QRCode,
+		Options:     todo.Options,
+		CreatedBy:   createdBy,
+		Pictures:    todo.Pictures,
+		ImageTask:   todo.ImageTask,
+		TaskUsers:   taskUsersResp,
+		CreatedAt:   todo.CreatedAt,
+		UpdatedAt:   todo.UpdatedAt,
+		DeletedAt:   todo.DeletedAt,
+		DeletedBy:   todo.DeletedBy,
+	}
+
 }

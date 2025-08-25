@@ -2,6 +2,7 @@ package todo
 
 import (
 	"time"
+	"todo-service/internal/user"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -20,7 +21,7 @@ type TodoResponse struct {
 	CreatedBy   TaskUser           `json:"created_by" bson:"created_by"`
 	Pictures    []string           `json:"pictures" bson:"pictures"`
 	ImageTask   string             `json:"image_task" bson:"image_task"`
-	TaskUsers   TaskUsersResponse          `json:"task_users" bson:"task_users"`
+	TaskUsers   TaskUsersResponse  `json:"task_users" bson:"task_users"`
 	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
 	DeletedAt   *string            `json:"deleted_at" bson:"deleted_at"`
@@ -34,13 +35,7 @@ type TaskUsersResponse struct {
 }
 
 type TaskUser struct {
-	UserID   string  `json:"user_id" bson:"user_id"`
-	UserName string  `json:"user_name" bson:"user_name"`
-	FullName string  `json:"full_name" bson:"full_name"`
-	Roles    []*Role `json:"roles" bson:"roles"`
-	Avartar  *string `json:"avatar" bson:"avatar"`
-}
-type Role struct {
-	RoleID   string `json:"role_id" bson:"role_id"`
-	RoleName string `json:"role_name" bson:"role_name"`
+	UserID         string   `json:"user_id"`
+	UserName       string   `json:"user_name"`
+	Avartars       []user.Avatar `json:"avatars"`
 }
