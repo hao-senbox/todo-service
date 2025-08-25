@@ -41,7 +41,7 @@ func (h *TodoHandler) GetTodos(c *gin.Context) {
 		return
 	}
 
-	helper.SendSuccess(c, 200, "Success", data)
+	helper.SendSuccess(c, 200, "Get todos successfully", data)
 
 }
 
@@ -68,7 +68,7 @@ func (h *TodoHandler) GetTodo(c *gin.Context) {
 		return
 	}
 
-	helper.SendSuccess(c, 200, "Success", data)
+	helper.SendSuccess(c, 200, "Get detail todo successfully", data)
 
 }
 
@@ -101,7 +101,7 @@ func (h *TodoHandler) CreateTodo(c *gin.Context) {
 		return
 	}
 
-	helper.SendSuccess(c, 200, "Success", data)
+	helper.SendSuccess(c, 200, "Create todo successfully", data)
 
 }
 
@@ -135,7 +135,7 @@ func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 		return
 	}
 
-	helper.SendSuccess(c, 200, "Success", nil)
+	helper.SendSuccess(c, 200, "Update todo successfully", nil)
 
 }
 
@@ -162,7 +162,7 @@ func (h *TodoHandler) DeleteTodo(c *gin.Context) {
 		return
 	}
 
-	helper.SendSuccess(c, 200, "Success", nil)	
+	helper.SendSuccess(c, 200, "Delete todo successfully", nil)	
 }
 
 func (h *TodoHandler) JoinTodo(c *gin.Context) {
@@ -193,7 +193,7 @@ func (h *TodoHandler) JoinTodo(c *gin.Context) {
 		return
 	}
 
-	helper.SendSuccess(c, 200, "Success", nil)
+	helper.SendSuccess(c, 200, "Join todo successfully", nil)
 
 }
 
@@ -219,8 +219,8 @@ func (h TodoHandler) AddUser(c *gin.Context) {
 		return
 	}
 
-	helper.SendSuccess(c, 200, "Success", nil)
-	
+	helper.SendSuccess(c, 200, "Add user successfully", nil)
+
 }
 
 func (h *TodoHandler) GetMyTodo(c *gin.Context) {
@@ -245,5 +245,5 @@ func (h *TodoHandler) GetMyTodo(c *gin.Context) {
 		return
 	}
 
-	helper.SendSuccess(c, 200, "Success", data)
+	helper.SendSuccess(c, 200, "Get my todo successfully", data)
 }
