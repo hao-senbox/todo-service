@@ -32,3 +32,9 @@ type JoinTodoRequest struct {
 	QRCode string `json:"qrcode"`
 	Type   string `json:"type"`
 }
+
+type AddUserRequest struct {
+	TodoID string `json:"todo_id"`
+	UserID string `json:"user_id"`
+	Type   string `json:"type"`
+}

@@ -16,7 +16,9 @@ func RegisterRoutes(r *gin.Engine, todoHanlder *TodoHandler) {
 		todoGroup.DELETE("/:id", todoHanlder.DeleteTodo)
 		//Add other routes
 		todoGroup.POST("/join", todoHanlder.JoinTodo)
+		todoGroup.POST("add-user", todoHanlder.AddUser)
 		todoGroup.GET("/my-todo", todoHanlder.GetMyTodo)
+
 
 	}
 }

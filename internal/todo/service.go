@@ -10,13 +10,14 @@ import (
 )
 
 type TodoService interface {
-	GetAllTodo(ctx context.Context, status string) ([]*Todo, error)
+	GetAllTodo(ctx context.Context, status, name, teacher, student, staff string) ([]*Todo, error)
 	GetTodoByID(ctx context.Context, todoID string) (*Todo, error)
 	CreateTodo(ctx context.Context, req CreateTodoRequest, userID string) (*string, error)
 	UpdateTodo(ctx context.Context, req UpdateTaskProgressRequest, id string) error
 	DeleteTodo(ctx context.Context, id string) error
 	// Join Todo
 	JoinTodo(ctx context.Context, req JoinTodoRequest, userID string) error
+	AddUser(ctx context.Context, req AddUserRequest) error
 	GetMyTodo(ctx context.Context, userID string) ([]*Todo, error)
 }
 
@@ -32,8 +33,8 @@ func NewTodoService(TodoRepo TodoRepository, UserService user.UserService) TodoS
 	}
 }
 
-func (s *todoService) GetAllTodo(ctx context.Context, status string) ([]*Todo, error) {
-	return s.TodoRepo.GetAllTodo(ctx, status)
+func (s *todoService) GetAllTodo(ctx context.Context, status, name, teacher, student, staff string) ([]*Todo, error) {
+	return s.TodoRepo.GetAllTodo(ctx, status, name, teacher, student, staff)
 }
 
 func (s *todoService) GetTodoByID(ctx context.Context, todoID string) (*Todo, error) {
@@ -281,6 +282,29 @@ func (s *todoService) JoinTodo(ctx context.Context, req JoinTodoRequest, userID 
 	return s.TodoRepo.JoinTodo(ctx, todoExist.ID, userID, req.Type)
 }
 
+func (s *todoService) AddUser(ctx context.Context, req AddUserRequest) error {
+	
+	if req.TodoID == "" {
+		return fmt.Errorf("todo id is required")
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(req.TodoID)
+	if err != nil {
+		return err
+	}
+
+	if req.UserID == "" {
+		return fmt.Errorf("user id is required")
+	}
+
+	if req.Type == "" {
+		return fmt.Errorf("type is required")
+	}
+
+	return s.TodoRepo.AddUser(ctx, objectID, req.UserID, req.Type)
+	
+}
+
 func (s *todoService) GetMyTodo(ctx context.Context, userID string) ([]*Todo, error) {
 	if userID == "" {
 		return nil, fmt.Errorf("user id is required")
@@ -397,14 +421,14 @@ func (s *todoService) GetMyTodo(ctx context.Context, userID string) ([]*Todo, er
 	return myTodo, nil
 }
 
-// func convertRoles(src []user.Role) []*Role {
-// 	var roles []*Role
-// 	for _, r := range src {
-// 		role := Role{
-// 			RoleID:   r.RoleID,
-// 			RoleName: r.RoleName,
-// 		}
-// 		roles = append(roles, &role)
-// 	}
-// 	return roles
-// }
+func convertRoles(src []user.Role) []*Role {
+	var roles []*Role
+	for _, r := range src {
+		role := Role{
+			RoleID:   r.RoleID,
+			RoleName: r.RoleName,
+		}
+		roles = append(roles, &role)
+	}
+	return roles
+}

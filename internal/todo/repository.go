@@ -10,7 +10,7 @@ import (
 )
 
 type TodoRepository interface {
-	GetAllTodo(ctx context.Context, status string) ([]*Todo, error)
+	GetAllTodo(ctx context.Context, status, name, teacher, student, staff string) ([]*Todo, error)
 	GetTodoByID(ctx context.Context, todoID primitive.ObjectID) (*Todo, error)
 	CreateTodo(ctx context.Context, todo *Todo) (*string, error)
 	UpdateTodo(ctx context.Context, todo *Todo) error
@@ -18,6 +18,7 @@ type TodoRepository interface {
 	// Join Todo
 	GetTodoByQRCode(ctx context.Context, qrCode string) (*Todo, error)
 	JoinTodo(ctx context.Context, todoID primitive.ObjectID, userID, typeUser string) error
+	AddUser(ctx context.Context, todoID primitive.ObjectID, userID, typeUser string) error
 	GetMyTodo(ctx context.Context, userID string) ([]*Todo, error)
 }
 
@@ -31,14 +32,32 @@ func NewTodoRepository(todoCollection *mongo.Collection) TodoRepository {
 	}
 }
 
-func (r *todoRepository) GetAllTodo(ctx context.Context, status string) ([]*Todo, error) {
+func (r *todoRepository) GetAllTodo(ctx context.Context, status, name, teacher, student, staff string) ([]*Todo, error) {
 
 	var todos []*Todo
+
     filter := bson.M{}
+
     if status != "" {
         filter["status"] = status
     }
-    fmt.Printf("Filter: %+v\n", filter)
+
+	if name != "" {
+		filter["name"] = name
+	}
+
+	if teacher != "" {
+		filter["task_users.teachers"] = teacher
+	}
+
+	if student != "" {
+		filter["task_users.students"] = student
+	}
+
+	if staff != "" {
+		filter["task_users.staff"] = staff
+	}
+
 	cursor, err := r.todoCollection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
@@ -140,6 +159,35 @@ func (r *todoRepository) JoinTodo(ctx context.Context, todoID primitive.ObjectID
 	}
 
 	_, err := r.todoCollection.UpdateOne(ctx, filter, update)
+	return err
+}
+
+func (r *todoRepository) AddUser(ctx context.Context, todoID primitive.ObjectID, userID, typeUser string) error {
+
+	filter := bson.M{
+		"_id": todoID,
+	}
+
+	var filed string
+	switch typeUser {
+	case "student":
+		filed = "task_users.students"
+	case "teacher":
+		filed = "task_users.teachers"
+	case "staff":
+		filed = "task_users.staff"
+	default:
+		return fmt.Errorf("type user not found")
+	}
+
+	update := bson.M{
+		"$addToSet": bson.M{
+			filed: userID,
+		},
+	}
+
+	_, err := r.todoCollection.UpdateOne(ctx, filter, update)
+	
 	return err
 }
 
