@@ -38,23 +38,23 @@ func (r *todoRepository) GetAllTodo(ctx context.Context, status, name, teacher, 
 
 	filter := bson.M{}
 
-	if status != "" {
+	if status != "" && status != "all" {
 		filter["status"] = status
 	}
 
-	if name != "" {
+	if name != "" && name != "all" {
 		filter["name"] = bson.M{"$regex": name, "$options": "i"}
 	}
 
-	if teacher != "" {
+	if teacher != "" && teacher != "all" {
 		filter["task_users.teachers"] = teacher
 	}
 
-	if student != "" {
+	if student != "" && student != "all" {
 		filter["task_users.students"] = student
 	}
 
-	if staff != "" {
+	if staff != "" && staff != "all" {
 		filter["task_users.staff"] = staff
 	}
 
@@ -182,7 +182,7 @@ func (r *todoRepository) AddUsers(ctx context.Context, todoID primitive.ObjectID
 
 	update := bson.M{
 		"$set": bson.M{
-			field: userIDs, 
+			field: userIDs,
 		},
 	}
 
