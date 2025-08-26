@@ -31,11 +31,11 @@ type TodoResponse struct {
 type TaskUsersResponse struct {
 	Teachers []TaskUser `json:"teachers" bson:"teachers"`
 	Students []TaskUser `json:"students" bson:"students"`
-	Staff    []TaskUser `json:"staff" bson:"staff"`
+	Staff    []TaskUser `json:"staffs" bson:"staffs"`
 }
 
 type TaskUser struct {
-	UserID         string   `json:"user_id"`
-	UserName       string   `json:"user_name"`
-	Avartar       user.Avatar `json:"avatar"`
+	UserID   string      `json:"id"`
+	UserName string      `json:"nickname"`
+	Avartar  user.Avatar `json:"avatar"`
 }
