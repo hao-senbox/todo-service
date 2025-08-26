@@ -43,7 +43,7 @@ func (r *todoRepository) GetAllTodo(ctx context.Context, status, name, teacher, 
 	}
 
 	if name != "" {
-		filter["name"] = name
+		filter["name"] = bson.M{"$regex": name, "$options": "i"}
 	}
 
 	if teacher != "" {
