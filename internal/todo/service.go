@@ -320,10 +320,6 @@ func (s *todoService) AddUser(ctx context.Context, req AddUserRequest) error {
 		return fmt.Errorf("todo not found")
 	}
 
-	if len(req.UserIDs) == 0 {
-		return fmt.Errorf("user id is required")
-	}
-
 	if req.Type == "" {
 		return fmt.Errorf("type is required")
 	}

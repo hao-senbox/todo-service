@@ -142,11 +142,11 @@ func (r *todoRepository) JoinTodo(ctx context.Context, todoID primitive.ObjectID
 
 	var filed string
 	switch typeUser {
-	case "student":
+	case "students":
 		filed = "task_users.students"
-	case "teacher":
+	case "teachers":
 		filed = "task_users.teachers"
-	case "staff":
+	case "staffs":
 		filed = "task_users.staff"
 	default:
 		return fmt.Errorf("type user not found")
@@ -170,11 +170,11 @@ func (r *todoRepository) AddUsers(ctx context.Context, todoID primitive.ObjectID
 
 	var field string
 	switch typeUser {
-	case "student":
+	case "students":
 		field = "task_users.students"
-	case "teacher":
+	case "teachers":
 		field = "task_users.teachers"
-	case "staff":
+	case "staffs":
 		field = "task_users.staff"
 	default:
 		return fmt.Errorf("type user not found")
