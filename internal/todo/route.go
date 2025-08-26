@@ -19,6 +19,5 @@ func RegisterRoutes(r *gin.Engine, todoHanlder *TodoHandler) {
 		todoGroup.POST("add-user", todoHanlder.AddUser)
 		todoGroup.GET("/my-todo", todoHanlder.GetMyTodo)
 
-
 	}
 }

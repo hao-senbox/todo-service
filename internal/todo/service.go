@@ -311,6 +311,15 @@ func (s *todoService) AddUser(ctx context.Context, req AddUserRequest) error {
 		return err
 	}
 
+	todo, err := s.TodoRepo.GetTodoByID(ctx, objectID)
+	if err != nil {
+		return err
+	}
+
+	if todo == nil {
+		return fmt.Errorf("todo not found")
+	}
+
 	if len(req.UserIDs) == 0 {
 		return fmt.Errorf("user id is required")
 	}

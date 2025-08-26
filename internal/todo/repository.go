@@ -36,11 +36,11 @@ func (r *todoRepository) GetAllTodo(ctx context.Context, status, name, teacher, 
 
 	var todos []*Todo
 
-    filter := bson.M{}
+	filter := bson.M{}
 
-    if status != "" {
-        filter["status"] = status
-    }
+	if status != "" {
+		filter["status"] = status
+	}
 
 	if name != "" {
 		filter["name"] = name
@@ -163,7 +163,7 @@ func (r *todoRepository) JoinTodo(ctx context.Context, todoID primitive.ObjectID
 }
 
 func (r *todoRepository) AddUsers(ctx context.Context, todoID primitive.ObjectID, userIDs []string, typeUser string) error {
-	
+
 	filter := bson.M{
 		"_id": todoID,
 	}
@@ -181,10 +181,8 @@ func (r *todoRepository) AddUsers(ctx context.Context, todoID primitive.ObjectID
 	}
 
 	update := bson.M{
-		"$addToSet": bson.M{
-			field: bson.M{
-				"$each": userIDs, 
-			},
+		"$set": bson.M{
+			field: userIDs, 
 		},
 	}
 
