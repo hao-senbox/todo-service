@@ -18,7 +18,7 @@ type TodoRepository interface {
 	// Join Todo
 	GetTodoByQRCode(ctx context.Context, qrCode string) (*Todo, error)
 	JoinTodo(ctx context.Context, todoID primitive.ObjectID, userID, typeUser string) error
-	AddUser(ctx context.Context, todoID primitive.ObjectID, userID, typeUser string) error
+	AddUsers(ctx context.Context, todoID primitive.ObjectID, userIDs []string, typeUser string) error
 	GetMyTodo(ctx context.Context, userID string) ([]*Todo, error)
 }
 
@@ -162,32 +162,33 @@ func (r *todoRepository) JoinTodo(ctx context.Context, todoID primitive.ObjectID
 	return err
 }
 
-func (r *todoRepository) AddUser(ctx context.Context, todoID primitive.ObjectID, userID, typeUser string) error {
-
+func (r *todoRepository) AddUsers(ctx context.Context, todoID primitive.ObjectID, userIDs []string, typeUser string) error {
+	
 	filter := bson.M{
 		"_id": todoID,
 	}
 
-	var filed string
+	var field string
 	switch typeUser {
 	case "student":
-		filed = "task_users.students"
+		field = "task_users.students"
 	case "teacher":
-		filed = "task_users.teachers"
+		field = "task_users.teachers"
 	case "staff":
-		filed = "task_users.staff"
+		field = "task_users.staff"
 	default:
 		return fmt.Errorf("type user not found")
 	}
 
 	update := bson.M{
 		"$addToSet": bson.M{
-			filed: userID,
+			field: bson.M{
+				"$each": userIDs, 
+			},
 		},
 	}
 
 	_, err := r.todoCollection.UpdateOne(ctx, filter, update)
-	
 	return err
 }
 

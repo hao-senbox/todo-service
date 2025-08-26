@@ -311,7 +311,7 @@ func (s *todoService) AddUser(ctx context.Context, req AddUserRequest) error {
 		return err
 	}
 
-	if req.UserID == "" {
+	if len(req.UserIDs) == 0 {
 		return fmt.Errorf("user id is required")
 	}
 
@@ -319,7 +319,7 @@ func (s *todoService) AddUser(ctx context.Context, req AddUserRequest) error {
 		return fmt.Errorf("type is required")
 	}
 
-	return s.TodoRepo.AddUser(ctx, objectID, req.UserID, req.Type)
+	return s.TodoRepo.AddUsers(ctx, objectID, req.UserIDs, req.Type)
 
 }
 

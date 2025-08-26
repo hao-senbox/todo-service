@@ -17,7 +17,7 @@ type UpdateTaskProgressRequest struct {
 	Description *string  `json:"description"`
 	DueDate     string   `json:"due_date"`
 	Urgent      bool     `json:"urgent"`
-	Status      string  `json:"status"`
+	Status      string   `json:"status"`
 	Link        *string  `json:"link"`
 	Stage       *string  `json:"stage"`
 	Options     *string  `json:"options"`
@@ -34,7 +34,7 @@ type JoinTodoRequest struct {
 }
 
 type AddUserRequest struct {
-	TodoID string `json:"todo_id"`
-	UserID string `json:"user_id"`
-	Type   string `json:"type"`
+	TodoID  string   `json:"todo_id"`
+	UserIDs []string `json:"user_ids"`
+	Type    string   `json:"type"`
 }
