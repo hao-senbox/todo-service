@@ -47,7 +47,6 @@ func (s *todoService) GetAllTodo(ctx context.Context, status, name, teacher, stu
 	return results, nil
 }
 
-
 func (s *todoService) GetTodoByID(ctx context.Context, todoID string) (*TodoResponse, error) {
 	objectID, err := primitive.ObjectIDFromHex(todoID)
 	if err != nil {
@@ -64,7 +63,6 @@ func (s *todoService) GetTodoByID(ctx context.Context, todoID string) (*TodoResp
 
 	return s.buildTodoResponse(ctx, todo), nil
 }
-
 
 func (s *todoService) CreateTodo(ctx context.Context, req CreateTodoRequest, userID string) (*string, error) {
 
@@ -104,6 +102,7 @@ func (s *todoService) CreateTodo(ctx context.Context, req CreateTodoRequest, use
 			Students: []string{},
 			Staff:    []string{},
 		},
+		Feedback:  nil,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		ImageTask: req.ImageTask,
@@ -214,6 +213,7 @@ func (s *todoService) UpdateTodo(ctx context.Context, req UpdateTaskProgressRequ
 		TaskUsers:   existingTodo.TaskUsers,
 		CreatedAt:   existingTodo.CreatedAt,
 		UpdatedAt:   updatedAt,
+		Feedback:    req.Feedback,
 		ImageTask:   req.ImageTask,
 		DeletedAt:   existingTodo.DeletedAt,
 		DeletedBy:   existingTodo.DeletedBy,
@@ -345,9 +345,9 @@ func (s *todoService) GetMyTodo(ctx context.Context, userID string) ([]*TodoResp
 				log.Printf("[WARN] failed to get createdBy user info for %s: %v", todo.CreatedBy, err)
 			} else {
 				createdBy = TaskUser{
-					UserID:         createdByInfor.UserID,
-					UserName:       createdByInfor.UserName,
-					Avartar:       createdByInfor.Avartar,
+					UserID:   createdByInfor.UserID,
+					UserName: createdByInfor.UserName,
+					Avartar:  createdByInfor.Avartar,
 				}
 			}
 		}
@@ -364,9 +364,9 @@ func (s *todoService) GetMyTodo(ctx context.Context, userID string) ([]*TodoResp
 				continue
 			}
 			taskUsersResp.Teachers = append(taskUsersResp.Teachers, TaskUser{
-				UserID:         info.UserID,
-				UserName:       info.UserName,
-				Avartar:       info.Avartar,
+				UserID:   info.UserID,
+				UserName: info.UserName,
+				Avartar:  info.Avartar,
 			})
 		}
 
@@ -380,9 +380,9 @@ func (s *todoService) GetMyTodo(ctx context.Context, userID string) ([]*TodoResp
 				continue
 			}
 			taskUsersResp.Students = append(taskUsersResp.Students, TaskUser{
-				UserID:         info.UserID,
-				UserName:       info.UserName,
-				Avartar:       info.Avartar,
+				UserID:   info.UserID,
+				UserName: info.UserName,
+				Avartar:  info.Avartar,
 			})
 		}
 
@@ -396,9 +396,9 @@ func (s *todoService) GetMyTodo(ctx context.Context, userID string) ([]*TodoResp
 				continue
 			}
 			taskUsersResp.Staff = append(taskUsersResp.Staff, TaskUser{
-				UserID:         info.UserID,
-				UserName:       info.UserName,
-				Avartar:       info.Avartar,
+				UserID:   info.UserID,
+				UserName: info.UserName,
+				Avartar:  info.Avartar,
 			})
 		}
 
@@ -440,7 +440,7 @@ func (s *todoService) buildTodoResponse(ctx context.Context, todo *Todo) *TodoRe
 			createdBy = TaskUser{
 				UserID:   createdByInfor.UserID,
 				UserName: createdByInfor.UserName,
-				Avartar: createdByInfor.Avartar,
+				Avartar:  createdByInfor.Avartar,
 			}
 		}
 	}
@@ -459,7 +459,7 @@ func (s *todoService) buildTodoResponse(ctx context.Context, todo *Todo) *TodoRe
 		taskUsersResp.Teachers = append(taskUsersResp.Teachers, TaskUser{
 			UserID:   info.UserID,
 			UserName: info.UserName,
-			Avartar: info.Avartar,
+			Avartar:  info.Avartar,
 		})
 	}
 
@@ -475,7 +475,7 @@ func (s *todoService) buildTodoResponse(ctx context.Context, todo *Todo) *TodoRe
 		taskUsersResp.Students = append(taskUsersResp.Students, TaskUser{
 			UserID:   info.UserID,
 			UserName: info.UserName,
-			Avartar: info.Avartar,
+			Avartar:  info.Avartar,
 		})
 	}
 
@@ -491,7 +491,7 @@ func (s *todoService) buildTodoResponse(ctx context.Context, todo *Todo) *TodoRe
 		taskUsersResp.Staff = append(taskUsersResp.Staff, TaskUser{
 			UserID:   info.UserID,
 			UserName: info.UserName,
-			Avartar: info.Avartar,
+			Avartar:  info.Avartar,
 		})
 	}
 

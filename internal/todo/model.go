@@ -21,6 +21,7 @@ type Todo struct {
 	Pictures    []string           `json:"pictures" bson:"pictures"`
 	ImageTask   string             `json:"image_task" bson:"image_task"`
 	TaskUsers   TaskUsers          `json:"task_users" bson:"task_users"`
+	Feedback    *string            `json:"feedback" bson:"feedback"`
 	CreatedBy   string             `json:"created_by" bson:"created_by"`
 	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`

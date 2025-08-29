@@ -22,6 +22,7 @@ type UpdateTaskProgressRequest struct {
 	Stage       *string  `json:"stage"`
 	Options     *string  `json:"options"`
 	QRCode      string   `json:"qrcode"`
+	Feedback    *string  `json:"feedback"`
 	CreatedBy   string   `json:"created_by"`
 	Pictures    []string `json:"pictures"`
 	ImageTask   string   `json:"image_task"`
