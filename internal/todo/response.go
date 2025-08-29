@@ -21,6 +21,7 @@ type TodoResponse struct {
 	CreatedBy   TaskUser           `json:"created_by" bson:"created_by"`
 	Pictures    []string           `json:"pictures" bson:"pictures"`
 	ImageTask   string             `json:"image_task" bson:"image_task"`
+	FeedBack    *string            `json:"feedback" bson:"feedback"`
 	TaskUsers   TaskUsersResponse  `json:"task_users" bson:"task_users"`
 	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
