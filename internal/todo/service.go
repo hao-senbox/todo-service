@@ -81,10 +81,6 @@ func (s *todoService) CreateTodo(ctx context.Context, req CreateTodoRequest, use
 		return nil, fmt.Errorf("invalid due_date format, expected YYYY-MM-DD HH:MM:SS: %v", err)
 	}
 
-	if !req.Urgent {
-		return nil, fmt.Errorf("urgent is required")
-	}
-
 	ID := primitive.NewObjectID()
 
 	QRCocde := fmt.Sprintf("SENBOX.ORG[TODO]:%s", ID.Hex())
