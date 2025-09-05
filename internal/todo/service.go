@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"time"
 	"todo-service/internal/user"
 
@@ -19,7 +20,7 @@ type TodoService interface {
 	// Join Todo
 	JoinTodo(ctx context.Context, req JoinTodoRequest, userID string) error
 	AddUser(ctx context.Context, req AddUserRequest) error
-	GetMyTodo(ctx context.Context, userID string) ([]*TodoResponse, error)
+	GetMyTodo(ctx context.Context, userID string) ([]*TodoResponse, float64, error)
 }
 
 type todoService struct {
@@ -140,10 +141,6 @@ func (s *todoService) UpdateTodo(ctx context.Context, req UpdateTaskProgressRequ
 
 	if req.Progress < 0 || req.Progress > 100 {
 		return fmt.Errorf("progress must be between 0 and 100")
-	}
-
-	if existingTodo.Progress >= req.Progress {
-		return fmt.Errorf("progress must be greater than the current progress")
 	}
 
 	if req.Name == "" {
@@ -320,22 +317,22 @@ func (s *todoService) AddUser(ctx context.Context, req AddUserRequest) error {
 
 }
 
-func (s *todoService) GetMyTodo(ctx context.Context, userID string) ([]*TodoResponse, error) {
-
+func (s *todoService) GetMyTodo(ctx context.Context, userID string) ([]*TodoResponse, float64, error) {
 	if userID == "" {
-		return nil, fmt.Errorf("user id is required")
+		return nil, 0, fmt.Errorf("user id is required")
 	}
 
 	myTodo, err := s.TodoRepo.GetMyTodo(ctx, userID)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	if len(myTodo) == 0 {
-		return nil, fmt.Errorf("todo not found")
+		return nil, 0, fmt.Errorf("todo not found")
 	}
 
 	var results []*TodoResponse
+	var totalProgress float64
 
 	for _, todo := range myTodo {
 		var createdBy TaskUser
@@ -425,10 +422,16 @@ func (s *todoService) GetMyTodo(ctx context.Context, userID string) ([]*TodoResp
 		}
 
 		results = append(results, todoResp)
+
+		totalProgress += float64(todo.Progress)
 	}
 
-	return results, nil
+	avgProgress := totalProgress / float64(len(myTodo))
+	avgProgress = math.Round(avgProgress*100) / 100
+
+	return results, avgProgress, nil
 }
+
 
 func (s *todoService) buildTodoResponse(ctx context.Context, todo *Todo) *TodoResponse {
 

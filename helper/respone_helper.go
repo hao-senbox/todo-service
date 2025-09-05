@@ -10,25 +10,27 @@ const (
 )
 
 type APIResponse struct {
-	StatusCode int         `json:"status_code"`
-	Message    string      `json:"message,omitempty"`
-	Data       interface{} `json:"data"`
-	Error      string      `json:"error,omitempty"`
-	ErrorCode  string      `json:"error_code,omitempty"`
+	StatusCode      int         `json:"status_code"`
+	Message         string      `json:"message,omitempty"`
+	Data            interface{} `json:"data"`
+	Error           string      `json:"error,omitempty"`
+	ErrorCode       string      `json:"error_code,omitempty"`
+	ProgressPercent float64     `json:"progress_percent,omitempty"`
 }
 
-func SendSuccess(c *gin.Context, statusCode int, message string, data interface{}) {
+func SendSuccess(c *gin.Context, statusCode int, message string, data interface{}, progress float64) {
 	c.JSON(statusCode, APIResponse{
-		StatusCode: statusCode,
-		Message: message,
-		Data: data,
+		StatusCode:      statusCode,
+		Message:         message,
+		Data:            data,
+		ProgressPercent: progress,
 	})
 }
 
-func SendError( c* gin.Context, statusCode int, err error, errorCode string) {
-	c.JSON(statusCode, APIResponse {
+func SendError(c *gin.Context, statusCode int, err error, errorCode string) {
+	c.JSON(statusCode, APIResponse{
 		StatusCode: statusCode,
-		Error: err.Error(),
-		ErrorCode: errorCode,
+		Error:      err.Error(),
+		ErrorCode:  errorCode,
 	})
 }
