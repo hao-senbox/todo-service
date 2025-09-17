@@ -19,6 +19,8 @@ type UserService interface {
 	GetStaffInfor(ctx context.Context, studentID string) (*UserInfor, error)
 	GetListTeacherInfor(ctx context.Context, userID string) ([]*UserInfor, error)
 	GetListStaffInfor(ctx context.Context, userID string) ([]*UserInfor, error)
+	GetTeacherInforByOrg(ctx context.Context, teacherID, orgID string) (*UserInfor, error)
+	GetStaffInforByOrg(ctx context.Context, staffID, orgID string) (*UserInfor, error)
 }
 
 type userService struct {
@@ -65,7 +67,6 @@ func NewServiceAPI(client *api.Client, serviceName string) *callAPI {
 	}
 }
 
-// safeGetString safely converts interface{} to string
 func safeGetString(v interface{}) string {
 	if v == nil {
 		return ""
@@ -73,7 +74,6 @@ func safeGetString(v interface{}) string {
 	return fmt.Sprintf("%v", v)
 }
 
-// safeGetMapString safely converts interface{} to map[string]interface{}
 func safeGetMapString(v interface{}) (map[string]interface{}, bool) {
 	if v == nil {
 		return nil, false
@@ -82,7 +82,6 @@ func safeGetMapString(v interface{}) (map[string]interface{}, bool) {
 	return m, ok
 }
 
-// parseAvatarSafely safely parses avatar data from map
 func parseAvatarSafely(data map[string]interface{}) Avatar {
 	var avatar Avatar
 
@@ -101,7 +100,6 @@ func parseAvatarSafely(data map[string]interface{}) Avatar {
 	return avatar
 }
 
-// parseUserInforSafely safely parses user information from response data
 func parseUserInforSafely(data map[string]interface{}) (*UserInfor, error) {
 	if data == nil {
 		return nil, nil
@@ -229,7 +227,42 @@ func (u *userService) GetListStaffInfor(ctx context.Context, userID string) ([]*
 	return parseListUserInforSafely(data)
 }
 
-// parseListUserInforSafely safely parses list of user information
+func (u *userService) GetTeacherInforByOrg(ctx context.Context, teacherID, orgID string) (*UserInfor, error) {
+	if u.client == nil {
+		return nil, fmt.Errorf("client is not initialized")
+	}
+
+	token, ok := ctx.Value(constants.TokenKey).(string)
+	if !ok {
+		return nil, fmt.Errorf("token not found in context")
+	}
+
+	data, err := u.client.getTeacherInforByOrg(teacherID, orgID, token)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get teacher info: %w", err)
+	}
+
+	return parseUserInforSafely(data)
+}
+
+func (u *userService) GetStaffInforByOrg(ctx context.Context, stafffID, orgID string) (*UserInfor, error) {
+	if u.client == nil {
+		return nil, fmt.Errorf("client is not initialized")
+	}
+
+	token, ok := ctx.Value(constants.TokenKey).(string)
+	if !ok {
+		return nil, fmt.Errorf("token not found in context")
+	}
+
+	data, err := u.client.getStaffInforByOrg(stafffID, orgID, token)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get staff info: %w", err)
+	}
+
+	return parseUserInforSafely(data)
+}
+
 func parseListUserInforSafely(data map[string]interface{}) ([]*UserInfor, error) {
 	if data == nil {
 		return nil, nil
@@ -454,6 +487,78 @@ func (c *callAPI) getListStaffTeacherInfor(userID string, token string) (map[str
 		return nil, fmt.Errorf("API call failed: %w", err)
 	}
 
+	if res == "" {
+		return nil, nil
+	}
+
+	var userData interface{}
+	if err := json.Unmarshal([]byte(res), &userData); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+
+	if userData == nil {
+		return nil, nil
+	}
+
+	if myMap, ok := userData.(map[string]interface{}); ok {
+		return myMap, nil
+	}
+
+	return nil, fmt.Errorf("unexpected response format")
+}
+
+func (c *callAPI) getTeacherInforByOrg(teacherID, orgID string, token string) (map[string]interface{}, error) {
+	if c == nil || c.client == nil || c.clientServer == nil {
+		return nil, fmt.Errorf("client is not properly initialized")
+	}
+
+	endpoint := fmt.Sprintf("/v1/gateway/teachers/organization/%s/user/%s", orgID, teacherID)
+	header := map[string]string{
+		"Content-Type":  "application/json",
+		"Authorization": "Bearer " + token,
+	}
+
+	res, err := c.client.CallAPI(c.clientServer, endpoint, http.MethodGet, nil, header)
+	if err != nil {
+		return nil, fmt.Errorf("API call failed: %w", err)
+	}
+
+	if res == "" {
+		return nil, nil
+	}
+
+	var userData interface{}
+	if err := json.Unmarshal([]byte(res), &userData); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+
+	if userData == nil {
+		return nil, nil
+	}
+
+	if myMap, ok := userData.(map[string]interface{}); ok {
+		return myMap, nil
+	}
+
+	return nil, fmt.Errorf("unexpected response format")
+}
+
+func (c *callAPI) getStaffInforByOrg(staffID, orgID string, token string) (map[string]interface{}, error) {
+	if c == nil || c.client == nil || c.clientServer == nil {
+		return nil, fmt.Errorf("client is not properly initialized")
+	}
+
+	endpoint := fmt.Sprintf("/v1/gateway/staffs/organization/%s/user/%s", orgID, staffID)
+	header := map[string]string{
+		"Content-Type":  "application/json",
+		"Authorization": "Bearer " + token,
+	}
+
+	res, err := c.client.CallAPI(c.clientServer, endpoint, http.MethodGet, nil, header)
+	if err != nil {
+		return nil, fmt.Errorf("API call failed: %w", err)
+	}
+	fmt.Println(res)
 	if res == "" {
 		return nil, nil
 	}

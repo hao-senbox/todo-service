@@ -187,7 +187,7 @@ func (h *TodoHandler) JoinTodo(c *gin.Context) {
 	
 	ctx := context.WithValue(c, constants.TokenKey, token)
 
-	err := h.TodoService.JoinTodo(ctx, req, userID.(string))
+	err := h.TodoService.JoinTodo(ctx, req, userID.(string), false)
 	if err != nil {
 		helper.SendError(c, 500, err, helper.ErrInvalidOperation)
 		return

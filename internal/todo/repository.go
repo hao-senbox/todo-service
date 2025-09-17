@@ -17,8 +17,8 @@ type TodoRepository interface {
 	DeleteTodo(ctx context.Context, todoID primitive.ObjectID) error
 	// Join Todo
 	GetTodoByQRCode(ctx context.Context, qrCode string) (*Todo, error)
-	JoinTodo(ctx context.Context, todoID primitive.ObjectID, userID, typeUser string) error
-	AddUsers(ctx context.Context, todoID primitive.ObjectID, userIDs []string, typeUser string) error
+	JoinTodo(ctx context.Context, todoID primitive.ObjectID, userID, typeUser string, isCreator bool) error
+	AddUsers(ctx context.Context, todoID primitive.ObjectID, userArray []TaskUserData, typeUser string) error
 	GetMyTodo(ctx context.Context, userID string) ([]*Todo, error)
 }
 
@@ -134,7 +134,7 @@ func (r *todoRepository) GetTodoByQRCode(ctx context.Context, qrCode string) (*T
 
 }
 
-func (r *todoRepository) JoinTodo(ctx context.Context, todoID primitive.ObjectID, userID, typeUser string) error {
+func (r *todoRepository) JoinTodo(ctx context.Context, todoID primitive.ObjectID, userID, typeUser string, isCreator bool) error {
 
 	filter := bson.M{
 		"_id": todoID,
@@ -147,14 +147,19 @@ func (r *todoRepository) JoinTodo(ctx context.Context, todoID primitive.ObjectID
 	case "teachers":
 		filed = "task_users.teachers"
 	case "staffs":
-		filed = "task_users.staff"
+		filed = "task_users.staffs"
 	default:
 		return fmt.Errorf("type user not found")
 	}
 
+	userData := TaskUserData{
+		UserID:    userID,
+		IsCreator: isCreator,
+	}
+
 	update := bson.M{
 		"$addToSet": bson.M{
-			filed: userID,
+			filed: userData,
 		},
 	}
 
@@ -162,7 +167,7 @@ func (r *todoRepository) JoinTodo(ctx context.Context, todoID primitive.ObjectID
 	return err
 }
 
-func (r *todoRepository) AddUsers(ctx context.Context, todoID primitive.ObjectID, userIDs []string, typeUser string) error {
+func (r *todoRepository) AddUsers(ctx context.Context, todoID primitive.ObjectID, userArray []TaskUserData, typeUser string) error {
 
 	filter := bson.M{
 		"_id": todoID,
@@ -175,14 +180,14 @@ func (r *todoRepository) AddUsers(ctx context.Context, todoID primitive.ObjectID
 	case "teachers":
 		field = "task_users.teachers"
 	case "staffs":
-		field = "task_users.staff"
+		field = "task_users.staffs"
 	default:
 		return fmt.Errorf("type user not found")
 	}
 
 	update := bson.M{
 		"$set": bson.M{
-			field: userIDs,
+			field: userArray,
 		},
 	}
 
