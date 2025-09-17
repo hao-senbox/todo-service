@@ -18,7 +18,7 @@ type TodoRepository interface {
 	// Join Todo
 	GetTodoByQRCode(ctx context.Context, qrCode string) (*Todo, error)
 	JoinTodo(ctx context.Context, todoID primitive.ObjectID, userID, typeUser string, isCreator bool) error
-	AddUsers(ctx context.Context, todoID primitive.ObjectID, userArray []TaskUserData, typeUser string) error
+	AddUsers(ctx context.Context, todoID primitive.ObjectID, userArray []string, typeUser string) error
 	GetMyTodo(ctx context.Context, userID string) ([]*Todo, error)
 }
 
@@ -152,14 +152,9 @@ func (r *todoRepository) JoinTodo(ctx context.Context, todoID primitive.ObjectID
 		return fmt.Errorf("type user not found")
 	}
 
-	userData := TaskUserData{
-		UserID:    userID,
-		IsCreator: isCreator,
-	}
-
 	update := bson.M{
 		"$addToSet": bson.M{
-			filed: userData,
+			filed: userID,
 		},
 	}
 
@@ -167,7 +162,7 @@ func (r *todoRepository) JoinTodo(ctx context.Context, todoID primitive.ObjectID
 	return err
 }
 
-func (r *todoRepository) AddUsers(ctx context.Context, todoID primitive.ObjectID, userArray []TaskUserData, typeUser string) error {
+func (r *todoRepository) AddUsers(ctx context.Context, todoID primitive.ObjectID, userArray []string, typeUser string) error {
 
 	filter := bson.M{
 		"_id": todoID,

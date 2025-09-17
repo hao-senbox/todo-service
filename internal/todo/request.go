@@ -31,12 +31,12 @@ type UpdateTaskProgressRequest struct {
 }
 
 type JoinTodoRequest struct {
-	QRCode    string `json:"qrcode"`
-	Type      string `json:"type"`
+	QRCode string `json:"qrcode"`
+	Type   string `json:"type"`
 }
 
 type AddUserRequest struct {
 	TodoID  string   `json:"todo_id"`
-	UserArray []TaskUserData `json:"user_array"`
+	UserIDs []string `json:"user_ids"`
 	Type    string   `json:"type"`
 }

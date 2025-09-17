@@ -111,9 +111,9 @@ func (s *todoService) CreateTodo(ctx context.Context, req CreateTodoRequest, use
 		CreatedBy:      userID,
 		Pictures:       []string{},
 		TaskUsers: TaskUsers{
-			Teachers: []TaskUserData{},
-			Students: []TaskUserData{},
-			Staffs:    []TaskUserData{},
+			Teachers: []string{},
+			Students: []string{},
+			Staffs:   []string{},
 		},
 		Feedback:  nil,
 		CreatedAt: time.Now(),
@@ -126,35 +126,6 @@ func (s *todoService) CreateTodo(ctx context.Context, req CreateTodoRequest, use
 	id, err := s.TodoRepo.CreateTodo(ctx, todo)
 	if err != nil {
 		return nil, err
-	}
-
-	teacher, err := s.UserService.GetTeacherInforByOrg(ctx, userID, req.OrganizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	if teacher != nil {
-		if err = s.JoinTodo(ctx, JoinTodoRequest{
-			QRCode: QRCocde,
-			Type:   "teachers",
-		}, teacher.UserID, true); err != nil {
-			return nil, err
-		}
-	}
-
-	staff, err := s.UserService.GetStaffInforByOrg(ctx, userID, req.OrganizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	if staff != nil {
-		if err = s.JoinTodo(ctx, JoinTodoRequest{
-			QRCode: QRCocde,
-			Type:   "staffs",
-		}, staff.UserID, true); err != nil {
-			return nil, err
-		}
-
 	}
 
 	return id, nil
@@ -235,26 +206,27 @@ func (s *todoService) UpdateTodo(ctx context.Context, req UpdateTaskProgressRequ
 	updatedAt := time.Now()
 
 	todo := &Todo{
-		ID:          existingTodo.ID,
-		Name:        req.Name,
-		Description: req.Description,
-		DueDate:     existingTodo.DueDate,
-		Urgent:      existingTodo.Urgent,
-		Link:        req.Link,
-		Progress:    req.Progress,
-		Status:      req.Status,
-		Stage:       req.Stage,
-		QRCode:      existingTodo.QRCode,
-		Options:     req.Options,
-		CreatedBy:   existingTodo.CreatedBy,
-		Pictures:    req.Pictures,
-		TaskUsers:   existingTodo.TaskUsers,
-		CreatedAt:   existingTodo.CreatedAt,
-		UpdatedAt:   updatedAt,
-		Feedback:    req.Feedback,
-		ImageTask:   req.ImageTask,
-		DeletedAt:   existingTodo.DeletedAt,
-		DeletedBy:   existingTodo.DeletedBy,
+		ID:             existingTodo.ID,
+		Name:           req.Name,
+		OrganizationID: existingTodo.OrganizationID,
+		Description:    req.Description,
+		DueDate:        existingTodo.DueDate,
+		Urgent:         existingTodo.Urgent,
+		Link:           req.Link,
+		Progress:       req.Progress,
+		Status:         req.Status,
+		Stage:          req.Stage,
+		QRCode:         existingTodo.QRCode,
+		Options:        req.Options,
+		CreatedBy:      existingTodo.CreatedBy,
+		Pictures:       req.Pictures,
+		TaskUsers:      existingTodo.TaskUsers,
+		CreatedAt:      existingTodo.CreatedAt,
+		UpdatedAt:      updatedAt,
+		Feedback:       req.Feedback,
+		ImageTask:      req.ImageTask,
+		DeletedAt:      existingTodo.DeletedAt,
+		DeletedBy:      existingTodo.DeletedBy,
 	}
 
 	return s.TodoRepo.UpdateTodo(ctx, todo)
@@ -305,7 +277,7 @@ func (s *todoService) JoinTodo(ctx context.Context, req JoinTodoRequest, userID 
 
 	if len(todoExist.TaskUsers.Students) > 0 {
 		for _, student := range todoExist.TaskUsers.Students {
-			if student.UserID == userID && req.Type == "students" {
+			if student == userID && req.Type == "students" {
 				return fmt.Errorf("you have already joined this todo as student")
 			}
 		}
@@ -313,7 +285,7 @@ func (s *todoService) JoinTodo(ctx context.Context, req JoinTodoRequest, userID 
 
 	if len(todoExist.TaskUsers.Staffs) > 0 {
 		for _, staff := range todoExist.TaskUsers.Staffs {
-			if staff.UserID == userID && req.Type == "staffs" {
+			if staff == userID && req.Type == "staffs" {
 				return fmt.Errorf("you have already joined this todo as staff")
 			}
 		}
@@ -321,7 +293,7 @@ func (s *todoService) JoinTodo(ctx context.Context, req JoinTodoRequest, userID 
 
 	if len(todoExist.TaskUsers.Teachers) > 0 {
 		for _, teacher := range todoExist.TaskUsers.Teachers {
-			if teacher.UserID == userID && req.Type == "teachers" {
+			if teacher == userID && req.Type == "teachers" {
 				return fmt.Errorf("you have already joined this todo as teacher")
 			}
 		}
@@ -354,7 +326,11 @@ func (s *todoService) AddUser(ctx context.Context, req AddUserRequest) error {
 		return fmt.Errorf("type is required")
 	}
 
-	return s.TodoRepo.AddUsers(ctx, objectID, req.UserArray, req.Type)
+	if len(req.UserIDs) == 0 {
+		return fmt.Errorf("user array is required")
+	}
+
+	return s.TodoRepo.AddUsers(ctx, objectID, req.UserIDs, req.Type)
 
 }
 
@@ -383,10 +359,9 @@ func (s *todoService) GetMyTodo(ctx context.Context, userID string) ([]*TodoResp
 				log.Printf("[WARN] failed to get createdBy user info for %s: %v", todo.CreatedBy, err)
 			} else {
 				createdBy = TaskUser{
-					UserID:    createdByInfor.UserID,
-					IsCreator: true,
-					UserName:  createdByInfor.UserName,
-					Avartar:   createdByInfor.Avartar,
+					UserID:   createdByInfor.UserID,
+					UserName: createdByInfor.UserName,
+					Avartar:  createdByInfor.Avartar,
 				}
 			}
 		}
@@ -394,53 +369,50 @@ func (s *todoService) GetMyTodo(ctx context.Context, userID string) ([]*TodoResp
 		var taskUsersResp TaskUsersResponse
 
 		for _, teacher := range todo.TaskUsers.Teachers {
-			if teacher.UserID == "" {
+			if teacher == "" {
 				continue
 			}
-			info, err := s.UserService.GetTeacherInfor(ctx, teacher.UserID)
+			info, err := s.UserService.GetTeacherInfor(ctx, teacher)
 			if err != nil {
-				log.Printf("[WARN] failed to get teacher info for %s: %v", teacher.UserID, err)
+				log.Printf("[WARN] failed to get teacher info for %s: %v", teacher, err)
 				continue
 			}
 			taskUsersResp.Teachers = append(taskUsersResp.Teachers, TaskUser{
-				UserID:    info.UserID,
-				IsCreator: teacher.IsCreator,
-				UserName:  info.UserName,
-				Avartar:   info.Avartar,
+				UserID:   info.UserID,
+				UserName: info.UserName,
+				Avartar:  info.Avartar,
 			})
 		}
 
 		for _, student := range todo.TaskUsers.Students {
-			if student.UserID == "" {
+			if student == "" {
 				continue
 			}
-			info, err := s.UserService.GetStudentInfor(ctx, student.UserID)
+			info, err := s.UserService.GetStudentInfor(ctx, student)
 			if err != nil {
-				log.Printf("[WARN] failed to get student info for %s: %v", student.UserID, err)
+				log.Printf("[WARN] failed to get student info for %s: %v", student, err)
 				continue
 			}
 			taskUsersResp.Students = append(taskUsersResp.Students, TaskUser{
-				UserID:    info.UserID,
-				IsCreator: student.IsCreator,
-				UserName:  info.UserName,
-				Avartar:   info.Avartar,
+				UserID:   info.UserID,
+				UserName: info.UserName,
+				Avartar:  info.Avartar,
 			})
 		}
 
 		for _, staff := range todo.TaskUsers.Staffs {
-			if staff.UserID == "" {
+			if staff == "" {
 				continue
 			}
-			info, err := s.UserService.GetStaffInfor(ctx, staff.UserID)
+			info, err := s.UserService.GetStaffInfor(ctx, staff)
 			if err != nil {
-				log.Printf("[WARN] failed to get staff info for %s: %v", staff.UserID, err)
+				log.Printf("[WARN] failed to get staff info for %s: %v", staff, err)
 				continue
 			}
 			taskUsersResp.Staffs = append(taskUsersResp.Staffs, TaskUser{
-				UserID:    info.UserID,
-				IsCreator: staff.IsCreator,
-				UserName:  info.UserName,
-				Avartar:   info.Avartar,
+				UserID:   info.UserID,
+				UserName: info.UserName,
+				Avartar:  info.Avartar,
 			})
 		}
 
@@ -477,15 +449,14 @@ func (s *todoService) GetMyTodo(ctx context.Context, userID string) ([]*TodoResp
 	return results, avgProgress, nil
 }
 
-func safeCreateTaskUser(info *user.UserInfor, isCreator bool) TaskUser {
+func safeCreateTaskUser(info *user.UserInfor) TaskUser {
 	if info == nil {
 		return TaskUser{}
 	}
 	return TaskUser{
-		UserID:    info.UserID,
-		IsCreator: isCreator,
-		UserName:  info.UserName,
-		Avartar:   info.Avartar,
+		UserID:   info.UserID,
+		UserName: info.UserName,
+		Avartar:  info.Avartar,
 	}
 }
 
@@ -497,11 +468,39 @@ func (s *todoService) buildTodoResponse(ctx context.Context, todo *Todo) *TodoRe
 	}
 
 	var createdBy TaskUser
+
+	var Roles []string
 	if todo.CreatedBy != "" {
 		if createdByInfor, err := s.UserService.GetUserInfor(ctx, todo.CreatedBy); err != nil {
 			log.Printf("[WARN] failed to get createdBy user info for %s: %v", todo.CreatedBy, err)
 		} else {
-			createdBy = safeCreateTaskUser(createdByInfor, true)
+
+			createdBy = safeCreateTaskUser(createdByInfor)
+
+			teacher, err := s.UserService.GetTeacherInforByOrg(ctx, todo.CreatedBy, todo.OrganizationID)
+			if err != nil {
+				return nil
+			}
+
+			if teacher != nil {
+				Roles = append(Roles, "teacher")
+			}
+
+			staff, err := s.UserService.GetStaffInforByOrg(ctx, todo.CreatedBy, todo.OrganizationID)
+			if err != nil {
+				return nil
+			}
+
+			if staff != nil {
+				Roles = append(Roles, "staff")
+			}
+
+			if teacher == nil && staff == nil {
+				Roles = append(Roles, "user")
+			}
+
+			createdBy.Roles = Roles
+
 		}
 	}
 
@@ -509,47 +508,47 @@ func (s *todoService) buildTodoResponse(ctx context.Context, todo *Todo) *TodoRe
 
 	if todo.TaskUsers.Teachers != nil {
 		for _, teacher := range todo.TaskUsers.Teachers {
-			if teacher.UserID == "" {
+			if teacher == "" {
 				log.Printf("[WARN] teacher id is empty")
 				continue
 			}
-			if info, err := s.UserService.GetTeacherInfor(ctx, teacher.UserID); err != nil {
-				log.Printf("[WARN] failed to get teacher info for %s: %v", teacher.UserID, err)
+			if info, err := s.UserService.GetTeacherInfor(ctx, teacher); err != nil {
+				log.Printf("[WARN] failed to get teacher info for %s: %v", teacher, err)
 			} else if info != nil {
-				taskUsersResp.Teachers = append(taskUsersResp.Teachers, safeCreateTaskUser(info, teacher.IsCreator))
+				taskUsersResp.Teachers = append(taskUsersResp.Teachers, safeCreateTaskUser(info))
 			}
 		}
 	}
 
 	if todo.TaskUsers.Students != nil {
 		for _, student := range todo.TaskUsers.Students {
-			if student.UserID == "" {
+			if student == "" {
 				log.Printf("[WARN] student id is empty")
 				continue
 			}
-			if info, err := s.UserService.GetStudentInfor(ctx, student.UserID); err != nil {
-				log.Printf("[WARN] failed to get student info for %s: %v", student.UserID, err)
+			if info, err := s.UserService.GetStudentInfor(ctx, student); err != nil {
+				log.Printf("[WARN] failed to get student info for %s: %v", student, err)
 			} else if info != nil {
-				taskUsersResp.Students = append(taskUsersResp.Students, safeCreateTaskUser(info, student.IsCreator))
+				taskUsersResp.Students = append(taskUsersResp.Students, safeCreateTaskUser(info))
 			}
 		}
 	}
 
 	if todo.TaskUsers.Staffs != nil {
 		for _, staff := range todo.TaskUsers.Staffs {
-			if staff.UserID == "" {
+			if staff == "" {
 				log.Printf("[WARN] staff id is empty")
 				continue
 			}
-			if info, err := s.UserService.GetStaffInfor(ctx, staff.UserID); err != nil {
-				log.Printf("[WARN] failed to get staff info for %s: %v", staff.UserID, err)
+			if info, err := s.UserService.GetStaffInfor(ctx, staff); err != nil {
+				log.Printf("[WARN] failed to get staff info for %s: %v", staff, err)
 			} else if info != nil {
-				taskUsersResp.Staffs = append(taskUsersResp.Staffs, safeCreateTaskUser(info, staff.IsCreator))
+				taskUsersResp.Staffs = append(taskUsersResp.Staffs, safeCreateTaskUser(info))
 			}
 		}
 	}
 
-	data :=  &TodoResponse{
+	data := &TodoResponse{
 		ID:          todo.ID,
 		Name:        todo.Name,
 		Description: todo.Description,

@@ -32,12 +32,12 @@ type TodoResponse struct {
 type TaskUsersResponse struct {
 	Teachers []TaskUser `json:"teachers" bson:"teachers"`
 	Students []TaskUser `json:"students" bson:"students"`
-	Staffs    []TaskUser `json:"staffs" bson:"staffs"`
+	Staffs   []TaskUser `json:"staffs" bson:"staffs"`
 }
 
 type TaskUser struct {
-	UserID    string      `json:"id"`
-	UserName  string      `json:"nickname"`
-	IsCreator bool        `json:"is_creator"`
-	Avartar   user.Avatar `json:"avatar"`
+	UserID   string      `json:"id"`
+	UserName string      `json:"nickname"`
+	Roles    []string    `json:"roles,omitempty"`
+	Avartar  user.Avatar `json:"avatar"`
 }

@@ -31,12 +31,7 @@ type Todo struct {
 }
 
 type TaskUsers struct {
-	Teachers []TaskUserData `json:"teachers" bson:"teachers"`
-	Students []TaskUserData `json:"students" bson:"students"`
-	Staffs   []TaskUserData `json:"staffs" bson:"staffs"`
-}
-
-type TaskUserData struct {
-	UserID    string `json:"user_id" bson:"user_id"`
-	IsCreator bool   `json:"is_creator" bson:"is_creator"`
+	Teachers []string `json:"teachers" bson:"teachers"`
+	Students []string `json:"students" bson:"students"`
+	Staffs   []string `json:"staffs" bson:"staffs"`
 }
