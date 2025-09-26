@@ -17,9 +17,6 @@ func RequestIDMiddleware() gin.HandlerFunc {
 			requestID = uuid.New().String()
 		}
 
-		// Gán vào response header
-		c.Writer.Header().Set("X-Request-ID", requestID)
-
 		// Gán vào context
 		c.Set("X-Request-ID", requestID)
 
