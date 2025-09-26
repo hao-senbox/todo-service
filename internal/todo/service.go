@@ -203,6 +203,14 @@ func (s *todoService) UpdateTodo(ctx context.Context, req UpdateTaskProgressRequ
 		req.Status = existingTodo.Status
 	}
 
+	if !req.Urgent {
+		req.Urgent = existingTodo.Urgent
+	} else if req.Urgent == true {
+		req.Urgent = true
+	} else {
+		req.Urgent = false
+	}
+
 	updatedAt := time.Now()
 
 	todo := &Todo{
@@ -211,7 +219,7 @@ func (s *todoService) UpdateTodo(ctx context.Context, req UpdateTaskProgressRequ
 		OrganizationID: existingTodo.OrganizationID,
 		Description:    req.Description,
 		DueDate:        existingTodo.DueDate,
-		Urgent:         existingTodo.Urgent,
+		Urgent:         req.Urgent,
 		Link:           req.Link,
 		Progress:       req.Progress,
 		Status:         req.Status,
@@ -557,6 +565,7 @@ func (s *todoService) buildTodoResponse(ctx context.Context, todo *Todo) *TodoRe
 		Link:        todo.Link,
 		Progress:    todo.Progress,
 		Stage:       todo.Stage,
+		Status:      todo.Status,
 		QRCode:      todo.QRCode,
 		Options:     todo.Options,
 		CreatedBy:   createdBy,

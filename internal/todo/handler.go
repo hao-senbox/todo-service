@@ -247,13 +247,3 @@ func (h *TodoHandler) GetMyTodo(c *gin.Context) {
 
 	helper.SendSuccess(c, 200, "Get my todo successfully", data, avg)
 }
-
-func (h *TodoHandler) TestHeader(c *gin.Context) {
-	requestID := c.GetHeader("X-Request-ID")
-	fmt.Printf("RequestID: %s\n", requestID)
-
-	c.JSON(200, gin.H{
-		"message":    "ok",
-		"request_id": requestID,
-	})
-}

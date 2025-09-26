@@ -16,6 +16,7 @@ type TodoResponse struct {
 	Link        *string            `json:"link" bson:"link"`
 	Progress    int                `json:"progress" bson:"progress"`
 	Stage       *string            `json:"stage" bson:"stage"`
+	Status      string             `json:"status" bson:"status"`
 	QRCode      string             `json:"qrcode" bson:"qrcode"`
 	Options     *string            `json:"options" bson:"options"`
 	CreatedBy   TaskUser           `json:"created_by" bson:"created_by"`
