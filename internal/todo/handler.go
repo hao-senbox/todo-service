@@ -59,7 +59,7 @@ func (h *TodoHandler) GetTodo(c *gin.Context) {
 		helper.SendError(c, 400, fmt.Errorf("token not found"), helper.ErrInvalidRequest)
 		return
 	}
-	
+
 	ctx := context.WithValue(c, constants.TokenKey, token)
 
 	data, err := h.TodoService.GetTodoByID(ctx, id)
@@ -73,9 +73,9 @@ func (h *TodoHandler) GetTodo(c *gin.Context) {
 }
 
 func (h *TodoHandler) CreateTodo(c *gin.Context) {
-	
+
 	var req CreateTodoRequest
-	
+
 	if err := c.BindJSON(&req); err != nil {
 		helper.SendError(c, 400, err, helper.ErrInvalidRequest)
 		return
@@ -92,7 +92,7 @@ func (h *TodoHandler) CreateTodo(c *gin.Context) {
 		helper.SendError(c, 400, fmt.Errorf("token not found"), helper.ErrInvalidRequest)
 		return
 	}
-	
+
 	ctx := context.WithValue(c, constants.TokenKey, token)
 
 	data, err := h.TodoService.CreateTodo(ctx, req, userID.(string))
@@ -115,7 +115,7 @@ func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 	}
 
 	var req UpdateTaskProgressRequest
-	
+
 	if err := c.BindJSON(&req); err != nil {
 		helper.SendError(c, 400, err, helper.ErrInvalidRequest)
 		return
@@ -126,7 +126,7 @@ func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 		helper.SendError(c, 400, fmt.Errorf("token not found"), helper.ErrInvalidRequest)
 		return
 	}
-	
+
 	ctx := context.WithValue(c, constants.TokenKey, token)
 
 	err := h.TodoService.UpdateTodo(ctx, req, id)
@@ -153,7 +153,7 @@ func (h *TodoHandler) DeleteTodo(c *gin.Context) {
 		helper.SendError(c, 400, fmt.Errorf("token not found"), helper.ErrInvalidRequest)
 		return
 	}
-	
+
 	ctx := context.WithValue(c, constants.TokenKey, token)
 
 	err := h.TodoService.DeleteTodo(ctx, id)
@@ -162,7 +162,7 @@ func (h *TodoHandler) DeleteTodo(c *gin.Context) {
 		return
 	}
 
-	helper.SendSuccess(c, 200, "Delete todo successfully", nil, 0)	
+	helper.SendSuccess(c, 200, "Delete todo successfully", nil, 0)
 }
 
 func (h *TodoHandler) JoinTodo(c *gin.Context) {
@@ -184,7 +184,7 @@ func (h *TodoHandler) JoinTodo(c *gin.Context) {
 		helper.SendError(c, 400, fmt.Errorf("token not found"), helper.ErrInvalidRequest)
 		return
 	}
-	
+
 	ctx := context.WithValue(c, constants.TokenKey, token)
 
 	err := h.TodoService.JoinTodo(ctx, req, userID.(string), false)
@@ -210,7 +210,7 @@ func (h TodoHandler) AddUser(c *gin.Context) {
 		helper.SendError(c, 400, fmt.Errorf("token not found"), helper.ErrInvalidRequest)
 		return
 	}
-	
+
 	ctx := context.WithValue(c, constants.TokenKey, token)
 
 	err := h.TodoService.AddUser(ctx, req)
@@ -236,7 +236,7 @@ func (h *TodoHandler) GetMyTodo(c *gin.Context) {
 		helper.SendError(c, 400, fmt.Errorf("token not found"), helper.ErrInvalidRequest)
 		return
 	}
-	
+
 	ctx := context.WithValue(c, constants.TokenKey, token)
 
 	data, avg, err := h.TodoService.GetMyTodo(ctx, userID.(string))
@@ -246,4 +246,14 @@ func (h *TodoHandler) GetMyTodo(c *gin.Context) {
 	}
 
 	helper.SendSuccess(c, 200, "Get my todo successfully", data, avg)
+}
+
+func (h *TodoHandler) TestHeader(c *gin.Context) {
+	requestID := c.GetHeader("X-Request-ID")
+	fmt.Printf("RequestID: %s\n", requestID)
+
+	c.JSON(200, gin.H{
+		"message":    "ok",
+		"request_id": requestID,
+	})
 }
