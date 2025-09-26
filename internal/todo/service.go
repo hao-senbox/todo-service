@@ -203,12 +203,9 @@ func (s *todoService) UpdateTodo(ctx context.Context, req UpdateTaskProgressRequ
 		req.Status = existingTodo.Status
 	}
 
-	if !req.Urgent {
-		req.Urgent = existingTodo.Urgent
-	} else if req.Urgent == true {
-		req.Urgent = true
-	} else {
-		req.Urgent = false
+	urgentValue := existingTodo.Urgent
+	if req.Urgent != nil {
+		urgentValue = *req.Urgent
 	}
 
 	updatedAt := time.Now()
@@ -219,7 +216,7 @@ func (s *todoService) UpdateTodo(ctx context.Context, req UpdateTaskProgressRequ
 		OrganizationID: existingTodo.OrganizationID,
 		Description:    req.Description,
 		DueDate:        existingTodo.DueDate,
-		Urgent:         req.Urgent,
+		Urgent:         urgentValue,
 		Link:           req.Link,
 		Progress:       req.Progress,
 		Status:         req.Status,
@@ -481,37 +478,49 @@ func (s *todoService) buildTodoResponse(ctx context.Context, todo *Todo) *TodoRe
 
 	var Roles []string
 	if todo.CreatedBy != "" {
-		if createdByInfor, err := s.UserService.GetUserInfor(ctx, todo.CreatedBy); err != nil {
-			log.Printf("[WARN] failed to get createdBy user info for %s: %v", todo.CreatedBy, err)
-		} else {
 
-			createdBy = safeCreateTaskUser(createdByInfor)
-
-			teacher, err := s.UserService.GetTeacherInforByOrg(ctx, todo.CreatedBy, todo.OrganizationID)
-			if err != nil {
-				return nil
-			}
-
-			if teacher != nil {
-				Roles = append(Roles, "teacher")
-			}
-
-			staff, err := s.UserService.GetStaffInforByOrg(ctx, todo.CreatedBy, todo.OrganizationID)
-			if err != nil {
-				return nil
-			}
-
-			if staff != nil {
-				Roles = append(Roles, "staff")
-			}
-
-			if teacher == nil && staff == nil {
-				Roles = append(Roles, "user")
-			}
-
-			createdBy.Roles = Roles
-
+		teacher, err := s.UserService.GetTeacherInforByOrg(ctx, todo.CreatedBy, todo.OrganizationID)
+		if err != nil {
+			return nil
 		}
+
+		if teacher != nil {
+			Roles = append(Roles, "teacher")
+		}
+
+		staff, err := s.UserService.GetStaffInforByOrg(ctx, todo.CreatedBy, todo.OrganizationID)
+		if err != nil {
+			return nil
+		}
+
+		if staff != nil {
+			Roles = append(Roles, "staff")
+		}
+
+		if teacher == nil && staff == nil {
+			Roles = append(Roles, "user")
+		}
+
+		for _, role := range Roles {
+			if role == "teacher" {
+				createdBy = TaskUser{
+					UserID:   teacher.UserID,
+					UserName: teacher.UserName,
+					Avartar:  teacher.Avartar,
+				}
+				break
+			} else if role == "staff" {
+				createdBy = TaskUser{
+					UserID:   staff.UserID,
+					UserName: staff.UserName,
+					Avartar:  staff.Avartar,
+				}
+				break
+			}
+		}
+
+		createdBy.Roles = Roles
+
 	}
 
 	var taskUsersResp TaskUsersResponse

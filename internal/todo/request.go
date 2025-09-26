@@ -17,7 +17,7 @@ type UpdateTaskProgressRequest struct {
 	Name        string   `json:"name"`
 	Description *string  `json:"description"`
 	DueDate     string   `json:"due_date"`
-	Urgent      bool     `json:"urgent"`
+	Urgent      *bool     `json:"urgent"`
 	Status      string   `json:"status"`
 	Link        *string  `json:"link"`
 	Stage       *string  `json:"stage"`
