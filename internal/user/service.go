@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 	"todo-service/pkg/constants"
 	"todo-service/pkg/consul"
 
@@ -49,11 +50,20 @@ func NewServiceAPI(client *api.Client, serviceName string) *callAPI {
 		fmt.Printf("Error creating service discovery: %v\n", err)
 		return nil
 	}
+	
+	var service *api.CatalogService
 
-	service, err := sd.DiscoverService()
-	if err != nil {
-		fmt.Printf("Error discovering service: %v\n", err)
-		return nil
+	for i := 0; i < 10; i++ {
+		service, err = sd.DiscoverService()
+		if err == nil && service != nil {
+			break
+		}
+		fmt.Printf("Waiting for service %s... retry %d/10\n", serviceName, i+1)
+		time.Sleep(3 * time.Second)
+	}
+
+	if service == nil {
+		fmt.Printf("Service %s not found after retries, continuing anyway...\n", serviceName)
 	}
 
 	if os.Getenv("LOCAL_TEST") == "true" {
