@@ -1,0 +1,36 @@
+package repair
+
+import (
+	"time"
+	"todo-service/internal/location"
+	"todo-service/internal/shop"
+	"todo-service/internal/user"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type RepairResponse struct {
+	ID             primitive.ObjectID     `json:"id" bson:"_id"`
+	OrganizationID string                 `json:"organization_id" bson:"organization_id"`
+	JobNumber      int                    `json:"job_number" bson:"job_number"`
+	JobName        string                 `json:"job_name" bson:"job_name"`
+	QRCode         string                 `json:"qrcode" bson:"qrcode"`
+	Location       location.LocationInfor `json:"location" bson:"location"`
+	Status         string                 `json:"status" bson:"status"`
+	// Report by
+	DateReport  time.Time      `json:"date_report" bson:"date_report"`
+	ReportBy    user.UserInfor `json:"report_by" bson:"report_by"`
+	UrgentVote  int            `json:"urgent_vote" bson:"urgent_vote"`
+	Comment     string         `json:"comment" bson:"comment"`
+	ImageReport []string       `json:"image_report" bson:"image_report"`
+	// Repair by
+	DateRepair    *time.Time               `json:"date_repair" bson:"date_repair"`
+	RepairBy      *user.UserInfor          `json:"repair_by" bson:"repair_by"`
+	CommentRepair *string                  `json:"comment_repair" bson:"comment_repair"`
+	ImageRepair   []*string                `json:"image_repair" bson:"image_repair"`
+	ShopItems     *shop.RepairItemsSummary `json:"shop_items,omitempty" bson:"shop_items,omitempty"`
+	TotalCost     *float64                 `json:"total_cost" bson:"total_cost"`
+
+	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
+}

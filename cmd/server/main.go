@@ -8,7 +8,11 @@ import (
 	"syscall"
 	"time"
 	"todo-service/config"
+	"todo-service/internal/location"
+	"todo-service/internal/repair"
+	"todo-service/internal/shop"
 	"todo-service/internal/todo"
+	"todo-service/internal/uploader"
 	"todo-service/internal/user"
 	"todo-service/pkg/consul"
 	"todo-service/pkg/zap"
@@ -55,14 +59,31 @@ func main() {
 	}()
 
 	userService := user.NewUserService(consulClient)
+	locationService := location.NewLocationService(consulClient)
+	uploaderService := uploader.NewImageService(consulClient)
+
+	repairItemCollection := mongoClient.Database(cfg.MongoDB).Collection("repair_item")
+	productCollection := mongoClient.Database(cfg.MongoDB).Collection("product")
+	shopCollection := mongoClient.Database(cfg.MongoDB).Collection("shop")
+
+	shopRepository := shop.NewShopRepository(productCollection, repairItemCollection, shopCollection)
+	shopService := shop.NewShopService(shopRepository, uploaderService)
+	shopHandler := shop.NewShopHandler(shopService)
 	todoCollection := mongoClient.Database(cfg.MongoDB).Collection("todo")
 	todoRepository := todo.NewTodoRepository(todoCollection)
 	todoService := todo.NewTodoService(todoRepository, userService)
 	todoHandler := todo.NewTodoHandler(todoService)
 
+	repairCollection := mongoClient.Database(cfg.MongoDB).Collection("repair")
+	repairRepository := repair.NewRepairRepository(repairCollection)
+	repairService := repair.NewRepairService(repairRepository, locationService, userService, uploaderService, shopService)
+	repairHandler := repair.NewRepairHandler(repairService)
+
 	r := gin.Default()
 
 	todo.RegisterRoutes(r, todoHandler)
+	repair.RegisterRoutes(r, repairHandler)
+	shop.RegisterRoutes(r, shopHandler)
 	// Handle OS signal để deregister
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
