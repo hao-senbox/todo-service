@@ -115,5 +115,6 @@ func (c contextKey) String() string {
 }
 
 var (
-	TokenKey = contextKey("token")
+	TokenKey       = contextKey("token")
+	AppLanguageKey = contextKey("app_language")
 )

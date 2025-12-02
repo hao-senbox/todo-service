@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"todo-service/pkg/constants"
-	"todo-service/pkg/consul"
 	"net/http"
 	"os"
 	"time"
+	"todo-service/pkg/constants"
+	"todo-service/pkg/consul"
 
 	"github.com/hashicorp/consul/api"
 )
@@ -23,7 +23,9 @@ type ImageKey struct {
 
 type ImageService interface {
 	GetImageKey(ctx context.Context, key string) (*Avatar, error)
+	GetPDFKey(ctx context.Context, key string) (*Avatar, error)
 	DeleteImageKey(ctx context.Context, key string) error
+	DeletePDFKey(ctx context.Context, key string) error
 }
 
 type imageService struct {
@@ -106,6 +108,38 @@ func (s *imageService) GetImageKey(ctx context.Context, key string) (*Avatar, er
 
 }
 
+func (s *imageService) GetPDFKey(ctx context.Context, key string) (*Avatar, error) {
+
+	token, ok := ctx.Value(constants.TokenKey).(string)
+	if !ok {
+		return nil, fmt.Errorf("token not found in context")
+	}
+
+	pdf, err := s.client.getPDFKey(key, token)
+	if err != nil {
+		return nil, err
+	}
+
+	if pdf == nil {
+		return nil, nil
+	}
+
+	dataMap, ok := pdf["data"].(map[string]interface{})
+	if !ok {
+		return nil, nil
+	}
+
+	innerData, ok := dataMap["url"].(string)
+	if !ok || innerData == "" {
+		return nil, nil
+	}
+
+	return &Avatar{
+		Url: innerData,
+	}, nil
+
+}
+
 func (s *imageService) DeleteImageKey(ctx context.Context, key string) error {
 
 	token, ok := ctx.Value(constants.TokenKey).(string)
@@ -123,27 +157,14 @@ func (s *imageService) DeleteImageKey(ctx context.Context, key string) error {
 
 }
 
-func (c *callAPI) deleleImage(key string, token string) error {
-
-	endpoint := "/v1/images/delete"
-
-	header := map[string]string{
-		"Content-Type":  "application/json",
-		"Authorization": "Bearer " + token,
+func (s *imageService) DeletePDFKey(ctx context.Context, key string) error {
+	token, ok := ctx.Value(constants.TokenKey).(string)
+	if !ok {
+		return fmt.Errorf("token not found in context")
 	}
 
-	body := map[string]string{
-		"key": key,
-	}
-
-	jsonBody, err := json.Marshal(body)
+	err := s.client.deletePDFKey(key, token)
 	if err != nil {
-		return fmt.Errorf("error marshalling body: %v", err)
-	}
-
-	_, err = c.client.CallAPI(c.clientServer, endpoint, http.MethodPost, jsonBody, header)
-	if err != nil {
-		fmt.Printf("Error calling API: %v\n", err)
 		return err
 	}
 
@@ -186,4 +207,94 @@ func (c *callAPI) getImageKey(key string, token string) (map[string]interface{},
 	myMap := imageData.(map[string]interface{})
 
 	return myMap, nil
+}
+
+func (c *callAPI) getPDFKey(key string, token string) (map[string]interface{}, error) {
+
+	endpoint := "/v1/pdfs"
+
+	header := map[string]string{
+		"Content-Type":  "application/json",
+		"Authorization": "Bearer " + token,
+	}
+
+	body := map[string]string{
+		"key":  key,
+		"mode": "public",
+	}
+
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling body: %v", err)
+	}
+
+	res, err := c.client.CallAPI(c.clientServer, endpoint, http.MethodPost, jsonBody, header)
+	if err != nil {
+		return nil, fmt.Errorf("error calling API: %v", err)
+	}
+
+	var pdfData interface{}
+
+	err = json.Unmarshal([]byte(res), &pdfData)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling response: %v", err)
+	}
+
+	myMap := pdfData.(map[string]interface{})
+
+	return myMap, nil
+}
+
+func (c *callAPI) deleleImage(key string, token string) error {
+
+	endpoint := "/v1/images/delete"
+
+	header := map[string]string{
+		"Content-Type":  "application/json",
+		"Authorization": "Bearer " + token,
+	}
+
+	body := map[string]string{
+		"key": key,
+	}
+
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return fmt.Errorf("error marshalling body: %v", err)
+	}
+
+	_, err = c.client.CallAPI(c.clientServer, endpoint, http.MethodPost, jsonBody, header)
+	if err != nil {
+		fmt.Printf("Error calling API: %v\n", err)
+		return err
+	}
+
+	return nil
+}
+
+
+func (c *callAPI) deletePDFKey(key string, token string) error {
+
+	endpoint := "/v1/pdfs"
+
+	header := map[string]string{
+		"Content-Type":  "application/json",
+		"Authorization": "Bearer " + token,
+	}
+
+	body := map[string]string{
+		"key": key,
+	}
+
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return fmt.Errorf("error marshalling body: %v", err)
+	}
+
+	_, err = c.client.CallAPI(c.clientServer, endpoint, http.MethodDelete, jsonBody, header)
+	if err != nil {
+		fmt.Printf("Error calling API: %v\n", err)
+		return err
+	}
+	return nil
 }

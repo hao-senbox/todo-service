@@ -11,6 +11,7 @@ import (
 	"todo-service/internal/location"
 	"todo-service/internal/repair"
 	"todo-service/internal/shop"
+	"todo-service/internal/task"
 	"todo-service/internal/todo"
 	"todo-service/internal/uploader"
 	"todo-service/internal/user"
@@ -79,11 +80,17 @@ func main() {
 	repairService := repair.NewRepairService(repairRepository, locationService, userService, uploaderService, shopService)
 	repairHandler := repair.NewRepairHandler(repairService)
 
+	taskCollection := mongoClient.Database(cfg.MongoDB).Collection("task")
+	taskRepository := task.NewTaskRepository(taskCollection)
+	taskService := task.NewTaskService(taskRepository, userService, uploaderService)
+	taskHandler := task.NewTaskHandler(taskService)
+
 	r := gin.Default()
 
 	todo.RegisterRoutes(r, todoHandler)
 	repair.RegisterRoutes(r, repairHandler)
 	shop.RegisterRoutes(r, shopHandler)
+	task.RegisterRoutes(r, taskHandler)
 	// Handle OS signal để deregister
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)

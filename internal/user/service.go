@@ -18,6 +18,7 @@ type UserService interface {
 	GetStudentInfor(ctx context.Context, studentID string) (*UserInfor, error)
 	GetTeacherInfor(ctx context.Context, studentID string) (*UserInfor, error)
 	GetStaffInfor(ctx context.Context, studentID string) (*UserInfor, error)
+	GetParentInfor(ctx context.Context, parentID string) (*UserInfor, error)
 	GetListTeacherInfor(ctx context.Context, userID string) ([]*UserInfor, error)
 	GetListStaffInfor(ctx context.Context, userID string) ([]*UserInfor, error)
 	GetTeacherInforByOrg(ctx context.Context, teacherID, orgID string) (*UserInfor, error)
@@ -196,6 +197,24 @@ func (u *userService) GetStaffInfor(ctx context.Context, staffID string) (*UserI
 	data, err := u.client.getStaffInfor(staffID, token)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get staff info: %w", err)
+	}
+
+	return parseUserInforSafely(data)
+}
+
+func (u *userService) GetParentInfor(ctx context.Context, parentID string) (*UserInfor, error) {
+	if u.client == nil {
+		return nil, fmt.Errorf("client is not initialized")
+	}
+
+	token, ok := ctx.Value(constants.TokenKey).(string)
+	if !ok {
+		return nil, fmt.Errorf("token not found in context")
+	}
+	
+	data, err := u.client.getParentInfor(parentID, token)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get parent info: %w", err)
 	}
 
 	return parseUserInforSafely(data)
@@ -427,6 +446,38 @@ func (c *callAPI) getStaffInfor(staffID string, token string) (map[string]interf
 
 	if res == "" {
 		return nil, nil
+	}
+
+	var userData interface{}
+	if err := json.Unmarshal([]byte(res), &userData); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+
+	if userData == nil {
+		return nil, nil
+	}
+
+	if myMap, ok := userData.(map[string]interface{}); ok {
+		return myMap, nil
+	}
+
+	return nil, fmt.Errorf("unexpected response format")
+}
+
+func (c *callAPI) getParentInfor(parentID string, token string) (map[string]interface{}, error) {
+	if c == nil || c.client == nil || c.clientServer == nil {
+		return nil, fmt.Errorf("client is not properly initialized")
+	}
+
+	endpoint := fmt.Sprintf("/v1/gateway/parents/get-by-user/%s", parentID)
+	header := map[string]string{
+		"Content-Type":  "application/json",
+		"Authorization": "Bearer " + token,
+	}
+
+	res, err := c.client.CallAPI(c.clientServer, endpoint, http.MethodGet, nil, header)
+	if err != nil {
+		return nil, fmt.Errorf("API call failed: %w", err)
 	}
 
 	var userData interface{}
