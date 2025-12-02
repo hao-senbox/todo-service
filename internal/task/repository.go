@@ -78,8 +78,7 @@ func (r *taskRepository) GetMyTask(ctx context.Context, userID string) ([]*Task,
 
 	filter := bson.M{
 		"$or": []bson.M{
-			{"group.user_id": userID},
-			{"created_by": userID},
+			{"leader.user_id": userID},
 		},
 	}
 

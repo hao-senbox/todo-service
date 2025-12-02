@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"log"
 	"todo-service/internal/uploader"
 	"todo-service/internal/user"
 )
@@ -29,6 +30,8 @@ func MapTaskToResponse(
 			userInfor, err = userService.GetStaffInfor(ctx, role.UserID)
 		case "parent":
 			userInfor, err = userService.GetParentInfor(ctx, role.UserID)
+		case "student":
+			userInfor, err = userService.GetStudentInfor(ctx, role.UserID)
 		default:
 			continue
 		}
@@ -76,6 +79,7 @@ func MapTaskToResponse(
 		if err != nil {
 			return nil
 		}
+		log.Println("pdf", pdf)
 		if pdf != nil {
 			fileURL = &pdf.Url
 		}

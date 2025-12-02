@@ -7,7 +7,7 @@ type CreateTaskRequest struct {
 	DueDate        string     `json:"due_date" binding:"required"`
 	Group          []UserRole `json:"group" binding:"required"`
 	Leader         []Leader   `json:"leader" binding:"required"`
-	File           *string    `json:"file" binding:"required"`
+	File           *string    `json:"file"`
 }
 
 type UpdateTaskRequest struct {

@@ -63,10 +63,6 @@ func (s *taskService) CreateTask(ctx context.Context, req CreateTaskRequest, use
 		return nil, fmt.Errorf("group is required")
 	}
 
-	if req.File == nil {
-		return nil, fmt.Errorf("file is required")
-	}
-
 	startDate, err := time.Parse("2006-01-02 15:04:05", req.StartDate)
 	if err != nil {
 		return nil, fmt.Errorf("invalid start_date format, expected YYYY-MM-DD HH:MM:SS: %v", err)
