@@ -290,7 +290,7 @@ func (s *taskService) UpdateTaskStatus(ctx context.Context, req UpdateTaskStatus
 	}
 
 	for i, group := range task.Group {
-		if group.UserID == userID {
+		if group.UserID == req.UserID && group.Role == req.Role {
 			task.Group[i].Status = req.Status
 			break
 		} else {
