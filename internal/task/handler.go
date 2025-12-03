@@ -50,6 +50,9 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 }
 
 func (h *TaskHandler) GetTasks(c *gin.Context) {
+	role := c.Query("role")
+	status := c.Query("status")
+
 	token, exists := c.Get(constants.Token)
 	if !exists {
 		helper.SendError(c, 400, fmt.Errorf("token not found"), helper.ErrInvalidRequest)
@@ -58,7 +61,7 @@ func (h *TaskHandler) GetTasks(c *gin.Context) {
 
 	ctx := context.WithValue(c, constants.TokenKey, token)
 
-	data, err := h.TaskService.GetTasks(ctx)
+	data, err := h.TaskService.GetTasks(ctx, role, status)
 	if err != nil {
 		helper.SendError(c, 500, err, helper.ErrInvalidOperation)
 		return

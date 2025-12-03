@@ -12,7 +12,7 @@ import (
 
 type TaskService interface {
 	CreateTask(ctx context.Context, req CreateTaskRequest, userID string) (*string, error)
-	GetTasks(ctx context.Context) ([]*TaskResponse, error)
+	GetTasks(ctx context.Context, role string, status string) ([]*TaskResponse, error)
 	GetTaskById(ctx context.Context, id string) (*TaskResponse, error)
 	UpdateTask(ctx context.Context, req UpdateTaskRequest, id string) error
 
@@ -115,8 +115,8 @@ func (s *taskService) CreateTask(ctx context.Context, req CreateTaskRequest, use
 	return &idParse, nil
 }
 
-func (s *taskService) GetTasks(ctx context.Context) ([]*TaskResponse, error) {
-	tasks, err := s.TaskRepo.GetTasks(ctx)
+func (s *taskService) GetTasks(ctx context.Context, role string, status string) ([]*TaskResponse, error) {
+	tasks, err := s.TaskRepo.GetTasks(ctx, role, status)
 	if err != nil {
 		return nil, err
 	}

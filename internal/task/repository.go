@@ -10,7 +10,7 @@ import (
 
 type TaskRepository interface {
 	CreateTask(ctx context.Context, task *Task) error
-	GetTasks(ctx context.Context) ([]*Task, error)
+	GetTasks(ctx context.Context, role string, status string) ([]*Task, error)
 	GetTaskById(ctx context.Context, id primitive.ObjectID) (*Task, error)
 	UpdateTask(ctx context.Context, id primitive.ObjectID, task *Task) error
 	GetMyTask(ctx context.Context, userID string) ([]*Task, error)
@@ -34,8 +34,18 @@ func (r *taskRepository) CreateTask(ctx context.Context, task *Task) error {
 	return nil
 }
 
-func (r *taskRepository) GetTasks(ctx context.Context) ([]*Task, error) {
-	cursor, err := r.taskCollection.Find(ctx, bson.M{})
+func (r *taskRepository) GetTasks(ctx context.Context, role string, status string) ([]*Task, error) {
+	filter := bson.M{}
+
+	if role != "" {
+		filter["group.role"] = role
+	}
+
+	if status != "" {
+		filter["group.status"] = status
+	}
+
+	cursor, err := r.taskCollection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -98,3 +108,4 @@ func (r *taskRepository) GetMyTask(ctx context.Context, userID string) ([]*Task,
 	}
 	return tasks, nil
 }
+
