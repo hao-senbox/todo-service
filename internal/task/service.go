@@ -15,6 +15,7 @@ type TaskService interface {
 	GetTasks(ctx context.Context, role string, status string) ([]*TaskResponse, error)
 	GetTaskById(ctx context.Context, id string) (*TaskResponse, error)
 	UpdateTask(ctx context.Context, req UpdateTaskRequest, id string) error
+	DeleteTask(ctx context.Context, id string) error
 
 	GetMyTask(ctx context.Context, userID string) ([]*TaskResponse, error)
 	UpdateTaskStatus(ctx context.Context, req UpdateTaskStatusRequest, id string, userID string) error
@@ -211,6 +212,40 @@ func (s *taskService) UpdateTask(ctx context.Context, req UpdateTaskRequest, id 
 	task.UpdatedAt = time.Now()
 
 	return s.TaskRepo.UpdateTask(ctx, objectID, task)
+}
+
+func (s *taskService) DeleteTask(ctx context.Context, id string) error {
+	if id == "" {
+		return fmt.Errorf("id is required")
+	}
+	
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return fmt.Errorf("invalid id format, expected ObjectID: %v", err)
+	}
+
+	task, err := s.TaskRepo.GetTaskById(ctx, objectID)
+	if err != nil {
+		return err
+	}
+
+	if task == nil {
+		return fmt.Errorf("task not found")
+	}
+
+	if task.File != nil {
+		err = s.FileGateway.DeletePDFKey(ctx, *task.File)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = s.TaskRepo.DeleteTask(ctx, objectID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *taskService) GetMyTask(ctx context.Context, userID string) ([]*TaskResponse, error) {

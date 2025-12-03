@@ -13,6 +13,7 @@ type TaskRepository interface {
 	GetTasks(ctx context.Context, role string, status string) ([]*Task, error)
 	GetTaskById(ctx context.Context, id primitive.ObjectID) (*Task, error)
 	UpdateTask(ctx context.Context, id primitive.ObjectID, task *Task) error
+	DeleteTask(ctx context.Context, id primitive.ObjectID) error
 	GetMyTask(ctx context.Context, userID string) ([]*Task, error)
 }
 
@@ -78,6 +79,14 @@ func (r *taskRepository) GetTaskById(ctx context.Context, id primitive.ObjectID)
 
 func (r *taskRepository) UpdateTask(ctx context.Context, id primitive.ObjectID, task *Task) error {
 	_, err := r.taskCollection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": task})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *taskRepository) DeleteTask(ctx context.Context, id primitive.ObjectID) error {
+	_, err := r.taskCollection.DeleteOne(ctx, bson.M{"_id": id})
 	if err != nil {
 		return err
 	}

@@ -13,7 +13,7 @@ func RegisterRoutes(r *gin.Engine, taskHandler *TaskHandler) {
 		taskGroup.GET("", taskHandler.GetTasks)
 		taskGroup.GET("/:id", taskHandler.GetTaskById)
 		taskGroup.PUT("/:id", taskHandler.UpdateTask)
-		// taskGroup.DELETE("/:id", taskHandler.DeleteTask)
+		taskGroup.DELETE("/:id", taskHandler.DeleteTask)
 		taskGroup.GET("/my-task", taskHandler.GetMyTask)
 		taskGroup.POST("/update-status/:id", taskHandler.UpdateTaskStatus)
 	}

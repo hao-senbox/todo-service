@@ -124,6 +124,30 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 	helper.SendSuccess(c, 200, "Update task successfully", nil, 0)
 }
 
+func (h *TaskHandler) DeleteTask(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		helper.SendError(c, 400, fmt.Errorf("id is required"), helper.ErrInvalidRequest)
+		return
+	}
+	
+	token, exists := c.Get(constants.Token)
+	if !exists {
+		helper.SendError(c, 400, fmt.Errorf("token not found"), helper.ErrInvalidRequest)
+		return
+	}
+
+	ctx := context.WithValue(c, constants.TokenKey, token)
+
+	err := h.TaskService.DeleteTask(ctx, id)
+	if err != nil {
+		helper.SendError(c, 500, err, helper.ErrInvalidOperation)
+		return
+	}
+
+	helper.SendSuccess(c, 200, "Delete task successfully", nil, 0)
+}
+
 func (h *TaskHandler) GetMyTask(c *gin.Context) {
 	userID, exists := c.Get(constants.UserID)
 	if !exists {
