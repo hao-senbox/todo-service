@@ -76,12 +76,22 @@ func (s *taskService) CreateTask(ctx context.Context, req CreateTaskRequest, use
 
 	id := primitive.NewObjectID()
 
+	var status string
+	now := time.Now().Truncate(24 * time.Hour)
+	start := startDate.Truncate(24 * time.Hour)
+
+	if now.Before(start) {
+		status = "not_started"
+	} else {
+		status = "progressing"
+	}
+
 	group := make([]UserRole, len(req.Group))
 	for i, role := range req.Group {
 		group[i] = UserRole{
 			UserID: role.UserID,
 			Role:   role.Role,
-			Status: "pending",
+			Status: status,
 		}
 	}
 
@@ -218,7 +228,7 @@ func (s *taskService) DeleteTask(ctx context.Context, id string) error {
 	if id == "" {
 		return fmt.Errorf("id is required")
 	}
-	
+
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return fmt.Errorf("invalid id format, expected ObjectID: %v", err)
