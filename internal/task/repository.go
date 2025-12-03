@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type TaskRepository interface {
@@ -46,7 +47,9 @@ func (r *taskRepository) GetTasks(ctx context.Context, role string, status strin
 		filter["group.status"] = status
 	}
 
-	cursor, err := r.taskCollection.Find(ctx, filter)
+	opts := options.Find().SetSort(bson.M{"created_at": -1})
+
+	cursor, err := r.taskCollection.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +104,9 @@ func (r *taskRepository) GetMyTask(ctx context.Context, userID string) ([]*Task,
 		},
 	}
 
-	cursor, err := r.taskCollection.Find(ctx, filter)
+	opts := options.Find().SetSort(bson.M{"created_at": -1})
+
+	cursor, err := r.taskCollection.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -117,4 +122,3 @@ func (r *taskRepository) GetMyTask(ctx context.Context, userID string) ([]*Task,
 	}
 	return tasks, nil
 }
-
