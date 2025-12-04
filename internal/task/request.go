@@ -19,8 +19,18 @@ type UpdateTaskRequest struct {
 	File      *string     `json:"file"`
 }
 
+// type TaskStatusUpdate struct {
+// 	UserID string `json:"user_id" binding:"required"`
+// 	Role   string `json:"role" binding:"required"`
+// 	Status string `json:"status" binding:"required"`
+// }
+
+// type UpdateTaskStatusRequest struct {
+// 	Group []TaskStatusUpdate `json:"group" binding:"required"`
+// }
+
 type UpdateTaskStatusRequest struct {
-	Status string `json:"status" binding:"required"`
 	UserID string `json:"user_id" binding:"required"`
 	Role   string `json:"role" binding:"required"`
+	Status string `json:"status" binding:"required"`
 }

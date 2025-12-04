@@ -179,7 +179,7 @@ func (h *TaskHandler) UpdateTaskStatus(c *gin.Context) {
 		return
 	}
 
-	var req UpdateTaskStatusRequest
+	var req []*UpdateTaskStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		helper.SendError(c, 400, err, helper.ErrInvalidRequest)
 		return

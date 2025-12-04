@@ -3,6 +3,7 @@ package task
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 	"todo-service/internal/uploader"
 	"todo-service/internal/user"
@@ -18,7 +19,7 @@ type TaskService interface {
 	DeleteTask(ctx context.Context, id string) error
 
 	GetMyTask(ctx context.Context, userID string) ([]*TaskResponse, error)
-	UpdateTaskStatus(ctx context.Context, req UpdateTaskStatusRequest, id string, userID string) error
+	UpdateTaskStatus(ctx context.Context, req []*UpdateTaskStatusRequest, id string, userID string) error
 }
 
 type taskService struct {
@@ -280,7 +281,7 @@ func (s *taskService) GetMyTask(ctx context.Context, userID string) ([]*TaskResp
 	return results, nil
 }
 
-func (s *taskService) UpdateTaskStatus(ctx context.Context, req UpdateTaskStatusRequest, id string, userID string) error {
+func (s *taskService) 	UpdateTaskStatus(ctx context.Context, req []*UpdateTaskStatusRequest, id string, userID string) error {
 	if id == "" {
 		return fmt.Errorf("id is required")
 	}
@@ -299,12 +300,18 @@ func (s *taskService) UpdateTaskStatus(ctx context.Context, req UpdateTaskStatus
 		return fmt.Errorf("task not found")
 	}
 
-	for i, group := range task.Group {
-		if group.UserID == req.UserID && group.Role == req.Role {
-			task.Group[i].Status = req.Status
-			break
-		} else {
-			return fmt.Errorf("user_id not found in group")
+	// Update status for each group item in the request
+	for _, groupUpdate := range req {
+		found := false
+		for i, group := range task.Group {
+			if group.UserID == groupUpdate.UserID && group.Role == groupUpdate.Role {
+				task.Group[i].Status = groupUpdate.Status
+				found = true
+				break
+			}
+		}
+		if !found {
+			log.Printf("user_id %s not found in group", groupUpdate.UserID)
 		}
 	}
 
